@@ -53,11 +53,13 @@ For every major concept in the chapter, generate one note. A concept warrants it
 
 **Pay special attention to bridge concepts** — ideas that sit at the boundary between two subjects and are rarely named explicitly in either course. These are the highest-value notes. If you find one, generate it as a standalone note in addition to any component concept notes.
 
+---
+
 ### Note format
 
-Every note must use this exact structure:
+Every note must use this exact structure. Read every rule before writing.
 
-```markdown
+````markdown
 ---
 title: <full concept name — lowercase, singular, no abbreviations>
 domain: <exact string from live domain registry, or proposed new domain>
@@ -68,37 +70,91 @@ builds-into: [<titles of notes that build on this concept>]
 related: [<titles of thematically related notes>]
 ---
 
-## Definition
+# Concept Name in Title Case
 
-State the concept precisely. One to three sentences. Avoid circularity.
+## Plain English
+
+One sentence. No jargon. No symbols. What is this thing, simply?
+Written for your future self who has forgotten the context entirely.
 
 ## Intuition
 
-One concrete analogy or mental model. Ground it in something physical or computable if possible.
+A concrete analogy or real-world visual — NOT a restatement of the definition.
+Something you can picture in 5 seconds.
 
-## Formal notation
+Good examples:
+- "Matrix multiplication is like applying two Instagram filters in sequence — order matters because blur-then-color looks different from color-then-blur."
+- "A dot product is a compatibility score — high when two vectors point the same direction, zero when they are perpendicular."
 
-Standard symbolic form. If multiple notations exist across fields, list them and identify which field uses which.
+## Formal Definition
 
-## Bridge to other domains
+> **Definition:**
+> $$\text{Full LaTeX equation or definition here}$$
+>
+> Where $x$ is ... and $A$ is ...
 
-**This is the most important section.** Name the exact mechanism connecting this concept to another subject. Structure:
+Use $inline$ for variables and short expressions within sentences.
+Use $$block$$ for all standalone equations.
+Matrices use \begin{bmatrix}...\end{bmatrix}.
+All math notation must be in LaTeX — never write math in plain text.
 
-- The bridge: [what the connecting idea is]
-- From: [domain A] — [how this concept appears or is named there]
-- To: [domain B] — [how the same idea appears or is named there]
-- Why this matters: [what becomes clear once you see the connection]
+## Worked Example
 
-Do not leave this section vague. If no meaningful bridge exists, say so explicitly rather than writing a generic sentence.
+A concrete numerical example using small numbers (1, 2, 3, 4). Show every step. Show the result.
+This is the section you refer back to when you forget how something works.
 
-## Where it appears
+$$\text{Step 1: ...}$$
 
-List courses, textbooks, and real systems where this concept appears. Be specific — name the course and the context in which it appears.
+$$\text{Step 2: ...}$$
 
-## Common confusions
+$$\text{Result: ...}$$
 
-List two to four misconceptions students have about this concept. For each, state the misconception and then the correction.
-```
+For abstract concepts, use the simplest possible concrete case.
+
+## Key Properties
+
+Essential rules only. Maximum 5. Only the ones worth remembering.
+
+$$\text{Property 1}$$
+
+$$\text{Property 2}$$
+
+## Why It Works
+
+2–4 sentences explaining the core reasoning. Enough to make the formula feel inevitable, not arbitrary. No full proof — just the insight that makes it click. Use LaTeX where helpful.
+
+## Bridge to Other Domains
+
+> **→ [Domain Name]:** One sentence naming the exact mechanism connecting this concept to that domain.
+> *Why it matters:* One sentence on the practical payoff.
+
+> **→ [Domain Name]:** ...
+> *Why it matters:* ...
+
+Maximum 3 bridges. Each bridge must name a **specific mechanism**, not a vague link. If a bridge references a related note already in the vault, name that note explicitly.
+
+## Where It Appears
+
+- Domain — specific use case
+- Domain — specific use case
+- Domain — specific use case
+
+Maximum 5 bullets. One line each.
+
+## Common Confusions
+
+> ⚠ You might think **X** — but actually **Y** because **Z**.
+
+> ⚠ You might think **X** — but actually **Y** because **Z**.
+
+Maximum 2.
+
+## Guru's Note
+
+One sentence written as advice from a senior student. The single most important thing to remember. Conversational, no jargon.
+````
+
+---
 
 ### Naming convention
 
@@ -106,6 +162,35 @@ List two to four misconceptions students have about this concept. For each, stat
 - Ambiguous terms get a full domain name prefix (not an abbreviation)
   - Correct: `probability bayes theorem.md`
   - Wrong: `bayes.md`, `prob bayes thm.md`
+- The frontmatter `title:` is always lowercase
+- The `# Heading` at the top of the note body is always Title Case
+  - If the title has a domain prefix: `title: linear algebra gradient` → `# Gradient (Linear Algebra)`
+
+---
+
+### LaTeX rules — strictly enforced
+
+- ALL mathematical notation must be in LaTeX — never write math in plain text
+- Never write `a_ij` — always write `$a_{ij}$`
+- Never write `A = LU` in plain text — always write `$A = LU$`
+- Inline math: `$...$` for variables and short expressions within sentences
+- Block math: `$$...$$` for standalone equations, definitions, and worked example steps
+- Matrices: use `\begin{bmatrix}...\end{bmatrix}`
+- Common symbols: `\cdot`, `\times`, `\in`, `\subset`, `\sum`, `\prod`, `\frac{}{}`, `\sqrt{}`, `\mathbf{}`, `\mathbb{}`
+- For "such that": `\text{ such that }` inside math mode
+- For multi-line equations: `\begin{align}...\end{align}`
+
+---
+
+### Quality rules — check before writing
+
+| Section | Passes if | Fails if |
+|---------|-----------|----------|
+| Plain English | No symbols, no jargon, genuinely one sentence | Contains a math symbol or domain term |
+| Intuition | A different angle from the definition — visual or physical | Restates the definition in simpler words |
+| Worked Example | Has actual numbers and shows every step | Is abstract or uses variables instead of numbers |
+| Bridge | Names a specific mechanism linking the two domains | Says "this concept is used in X" without explaining how |
+| Guru's Note | Exactly one sentence | More than one sentence |
 
 ---
 
