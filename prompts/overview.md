@@ -23,13 +23,16 @@ The user will specify a filename or partial name. Locate the matching file under
 
 ## Step 3 — Build the live domain registry
 
-Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` field. Collect all unique domain values into a registry. Preserve exact casing and spelling.
+Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` and `parent-domain:` fields. Build a registry of `(domain → parent-domain)` pairs. Preserve exact casing and spelling.
 
-This registry is the authoritative list of domains for this session. You will:
-- Reuse exact values from this registry when assigning domains to chapters
-- Propose new domain strings (and flag them for user confirmation) only when no existing domain fits
+Supplement sparse registry entries with the seed hierarchy from CLAUDE.md — the seed provides known parent-domain assignments for common domains.
 
-Do not invent or guess domain names silently.
+This registry is the authoritative list of domains for this session. When assigning domains to chapters:
+1. Check if an exact `domain` match exists in the registry
+2. If yes — use it, and assign the matching `parent-domain` from the registry
+3. If no match — propose a new `domain` name **and** its `parent-domain`
+4. If the `parent-domain` is also new — propose that too and flag it separately
+5. Flag all new proposals for user confirmation — never invent domain or parent-domain values silently
 
 ---
 
@@ -72,9 +75,11 @@ Flag any chapters with tight coupling — chapters that are so interdependent th
 
 ### 5c — Domain map
 
-Assign each chapter to one or more domains from the live registry (Step 3). If a chapter spans multiple domains, list all that apply.
+Assign each chapter to one or more domains from the live registry (Step 3). If a chapter spans multiple domains, list all that apply. For every domain assigned, also state its `parent-domain`.
 
-If a chapter requires a domain not in the registry, propose a new domain string and flag it for user confirmation. Do not use a proposed domain in the book map until the user confirms it.
+Format each entry as: `domain (parent: parent-domain)`
+
+If a chapter requires a domain not in the registry, propose a new `domain` name **and** its `parent-domain`. If the `parent-domain` is also new, flag that too. Do not use any proposed domain or parent-domain in the book map until the user confirms it.
 
 ### 5d — Bridge predictions
 
@@ -111,6 +116,7 @@ Write the book map as a single note directly to the vault (not staging — this 
 title: {book title} - book map
 type: book-map
 domain: {primary domain of the book, from live registry or confirmed proposal}
+parent-domain: {parent-domain of the primary domain, from live registry or confirmed proposal}
 date-added: {today's date in YYYY-MM-DD format}
 ---
 ```
@@ -128,7 +134,7 @@ Book title, author, total chapter count, and a two-to-three sentence description
 
 ## Domain Map
 
-[Output from Step 5c — chapters grouped by domain]
+[Output from Step 5c — chapters grouped by domain, each shown as `domain (parent: parent-domain)`]
 
 ## Bridge Predictions
 
@@ -156,7 +162,8 @@ Book map saved to: <full path>
 
 Domains identified: <list of domain strings assigned>
 New domain proposals (require user confirmation before use in ingest):
-  - <proposed domain string> — assigned to: Chapter N, Chapter M
+  - <proposed domain> (parent: <proposed parent-domain>) — assigned to: Chapter N, Chapter M
+  - (flag parent-domain separately if it is also new)
   - (none if all domains matched existing registry)
 
 Bridge predictions: <count>

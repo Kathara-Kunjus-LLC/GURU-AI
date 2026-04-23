@@ -32,13 +32,13 @@ And stop.
 
 ## Step 3 — Check for conflicts
 
-For each staged note, determine its destination path in the vault:
+For each staged note, read its frontmatter `domain:` and `parent-domain:` fields. Determine its destination path in the vault:
 
 ```
 {vault_path}/{domain}/{filename}.md
 ```
 
-Where `domain` is taken from the note's frontmatter `domain:` field.
+Where `domain` is taken from the note's frontmatter `domain:` field. The `parent-domain:` field is preserved in the note content but does not affect the directory structure.
 
 For each note, check whether a file already exists at that destination path using MCP.
 
@@ -68,7 +68,7 @@ Never overwrite an existing vault note without an explicit "yes" from the user. 
 For all notes confirmed to move (new notes, plus any conflicts the user approved):
 
 1. Using MCP, create the destination domain subfolder in the vault if it does not exist
-2. Write the note content to the destination path
+2. Write the note content to the destination path — preserving both `domain:` and `parent-domain:` frontmatter fields exactly as they appear in the staged note
 3. Verify the write succeeded before deleting the staging copy
 4. Delete the staging copy only after confirming the vault write succeeded
 

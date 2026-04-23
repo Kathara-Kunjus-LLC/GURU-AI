@@ -17,13 +17,16 @@ Do not proceed until you have confirmed all three paths are readable.
 
 ## Step 2 — Build the live domain registry
 
-Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` field. Collect all unique domain values into a registry. Preserve exact casing and spelling.
+Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` and `parent-domain:` fields. Build a registry of `(domain → parent-domain)` pairs. Preserve exact casing and spelling.
 
-This registry is the authoritative list of domains for this session. You will:
-- Reuse exact values from this registry when assigning domains to new notes
-- Propose new domain strings (and flag them for user confirmation) only when no existing domain fits
+Supplement sparse registry entries with the seed hierarchy from CLAUDE.md — the seed provides known parent-domain assignments for common domains.
 
-Do not invent or guess domain names silently.
+This registry is the authoritative list of domains for this session. When assigning domains to a new note:
+1. Check if an exact `domain` match exists in the registry
+2. If yes — use it, and assign the matching `parent-domain` from the registry
+3. If no match — propose a new `domain` name **and** its `parent-domain`
+4. If the `parent-domain` is also new — propose that too and flag it separately
+5. Flag all new proposals for user confirmation — never invent domain or parent-domain values silently
 
 ---
 
@@ -58,6 +61,7 @@ Every note must use this exact structure:
 ---
 title: <full concept name — lowercase, singular, no abbreviations>
 domain: <exact string from live domain registry, or proposed new domain>
+parent-domain: <exact parent-domain from live registry, or proposed new parent-domain>
 source: <textbook title, Chapter N: Chapter Name>
 prereqs: [<titles of notes this concept requires>]
 builds-into: [<titles of notes that build on this concept>]
@@ -132,7 +136,7 @@ Bridge concepts identified:
   - (none if no bridges found)
 
 New domain proposals (require user confirmation before use):
-  - <proposed domain string> — proposed for: <note titles>
+  - <proposed domain> (parent: <proposed parent-domain>) — proposed for: <note titles>
   - (none if all domains matched existing registry)
 
 Sections skipped:

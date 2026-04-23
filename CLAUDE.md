@@ -23,8 +23,9 @@ Always read `config.json` at the start of every session for canonical paths. Do 
 
 ## Prompts
 
-Two prompts live in `prompts/`:
+Three prompts live in `prompts/`:
 
+- `prompts/overview.md` — book map generation before chapter processing begins
 - `prompts/ingest.md` — note generation from a PDF chapter
 - `prompts/approve.md` — moving staged notes into the Vedam vault
 
@@ -41,16 +42,61 @@ Two prompts live in `prompts/`:
 
 ---
 
+## Domain Hierarchy — Seed Registry
+
+Every note has two domain fields: `domain` (the specific subject area) and `parent-domain` (the top-level category). The hierarchy below is the **seed** — a starting point, not a fixed list. New domains and parent-domains can be added at any time as the vault grows.
+
+```
+mathematics
+  - linear algebra
+  - statistics
+  - probability
+  - numerical methods
+
+computer science
+  - machine learning
+  - artificial intelligence
+  - data science
+  - databases
+  - systems design
+  - coding
+
+cloud & infrastructure
+  - aws
+  - azure
+  - distributed systems
+
+finance
+  - portfolio theory
+  - derivatives
+  - quantitative finance
+
+applied science
+  - signal processing
+  - differential equations
+  - control systems
+```
+
+Domain naming rules: **lowercase, full words, no abbreviations**.
+
+---
+
 ## Domain Registry — Dynamic, Not Static
 
-Domains are **never hardcoded**. At the start of every ingest session:
+Domains are **never hardcoded**. At the start of every session:
 
 1. Scan all `.md` files in the vault using MCP
-2. Read each file's frontmatter `domain:` field
-3. Build a live registry of existing domain values (exact strings, case-preserved)
-4. When assigning a domain to a new note, **match exactly** to an existing domain value if one fits
-5. If no existing domain fits, **propose a new domain name** and flag it in the session summary for user confirmation before writing it into notes
-6. Never invent domain names silently
+2. Read each file's frontmatter `domain:` and `parent-domain:` fields
+3. Build a live registry of existing `(domain → parent-domain)` pairs (exact strings, case-preserved)
+4. Use the seed hierarchy above to fill gaps when the vault is sparse
+5. When assigning domains to a new note:
+   - Check if an exact `domain` match exists in the registry
+   - If yes — use it, and assign the matching `parent-domain` from the registry
+   - If no match — propose a new `domain` name **and** its `parent-domain`
+   - If the `parent-domain` is also new — propose that too
+   - Flag **all** new proposals in the session summary for user confirmation
+6. Never invent domain or parent-domain values silently
+7. If a domain proposal is made and the user does not confirm it in the same session, do not use it
 
 ---
 
@@ -76,6 +122,7 @@ Every generated note must have this exact frontmatter followed by these exact se
 ---
 title: <full concept name>
 domain: <exact domain string from live registry, or proposed new domain>
+parent-domain: <exact parent-domain string from live registry, or proposed new parent-domain>
 source: <textbook title, chapter number and name>
 prereqs: [<list of note titles this concept depends on>]
 builds-into: [<list of note titles that build on this concept>]
@@ -119,7 +166,7 @@ When you find a bridge concept, generate it as its own standalone note in additi
 At the end of every ingest session, print a summary that includes:
 - Number of notes generated
 - Staging path used (`staging/chXX/`)
-- List of any new domain proposals awaiting user confirmation
+- List of any new domain or parent-domain proposals awaiting user confirmation (show as `domain (parent: parent-domain)`)
 - Any bridge concepts identified (title and the two domains they bridge)
 - Any chapters or sections skipped and why
 
@@ -131,4 +178,4 @@ At the end of every ingest session, print a summary that includes:
 - Never write notes directly to the vault; always write to staging first
 - Never overwrite existing vault notes without explicit user confirmation
 - Use MCP for all filesystem reads/writes to the vault
-- If a domain proposal is made and the user does not confirm it in the same session, do not use it
+- If a domain or parent-domain proposal is made and the user does not confirm it in the same session, do not use it
