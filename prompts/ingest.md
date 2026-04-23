@@ -64,10 +64,10 @@ Every note must use this exact structure. Read every rule before writing.
 title: <full concept name — lowercase, singular, no abbreviations>
 domain: <exact string from live domain registry, or proposed new domain>
 parent-domain: <exact parent-domain from live registry, or proposed new parent-domain>
-source: <textbook title, Chapter N: Chapter Name>
-prereqs: [<titles of notes this concept requires>]
-builds-into: [<titles of notes that build on this concept>]
-related: [<titles of thematically related notes>]
+source: "<textbook title, Chapter N: Chapter Name>"
+prereqs: ["[[note title]]", "[[note title]]"]
+builds-into: ["[[note title]]", "[[note title]]"]
+related: ["[[note title]]", "[[note title]]"]
 ---
 
 # Concept Name in Title Case
@@ -165,6 +165,23 @@ One sentence written as advice from a senior student. The single most important 
 - The frontmatter `title:` is always lowercase
 - The `# Heading` at the top of the note body is always Title Case
   - If the title has a domain prefix: `title: linear algebra gradient` → `# Gradient (Linear Algebra)`
+
+### Frontmatter field rules
+
+**`source:`** — always wrap in double quotes to prevent YAML parsing errors with commas and colons:
+```yaml
+source: "Applied Linear Algebra, Chapter 1: Linear Algebraic Systems"
+```
+
+**`prereqs:`, `builds-into:`, `related:`** — always use `"[[wikilink]]"` syntax inside quotes so Obsidian draws graph connections:
+```yaml
+prereqs: ["[[gaussian elimination]]", "[[pivot]]"]
+builds-into: ["[[lu factorization]]", "[[row echelon form]]"]
+related: ["[[matrix inverse]]"]
+```
+Empty lists stay as: `prereqs: []`
+
+Each entry must exactly match the `title:` field of the linked note (lowercase, full phrase). Never use plain text — `prereqs: [gaussian elimination]` will not create graph links.
 
 ---
 
