@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Thin custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.5); }
+
+/* ── Note content prose ───────────────────────────────── */
+.note-content {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  line-height: 1.75;
+}
+
+.note-content h2 {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #475569;
+  margin-top: 1.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.note-content h2:first-child { margin-top: 0; }
+
+.note-content p {
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
+}
+
+.note-content strong {
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.note-content em { color: #a5b4fc; font-style: italic; }
+
+.note-content ul, .note-content ol {
+  padding-left: 1.25rem;
+  margin-bottom: 0.75rem;
+  color: #94a3b8;
+}
+
+.note-content li { margin-bottom: 0.25rem; }
+
+.note-content code {
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  font-size: 0.78rem;
+  color: #6ee7b7;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+
+.note-content pre {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(51, 65, 85, 0.5);
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.note-content pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+/* KaTeX */
+.note-content .katex-display {
+  margin: 1.25rem 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+  color: #cbd5e1;
+}
+
+.note-content .katex { color: #cbd5e1; font-size: 1em; }
+
+/* Wikilinks */
+.wikilink {
+  color: #818cf8;
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(129, 140, 248, 0.3);
+  transition: border-color 0.15s, color 0.15s;
+}
+.wikilink:hover { color: #a5b4fc; border-bottom-color: rgba(165, 180, 252, 0.6); }
+
+/* KaTeX display math centering */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
