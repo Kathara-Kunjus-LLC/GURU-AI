@@ -133,20 +133,15 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     ctx.globalAlpha = alpha
 
     if (node.isBridge) {
-      // Outer glow ring
-      ctx.save()
-      ctx.shadowBlur = 10
-      ctx.shadowColor = color
-      hexPath(ctx, node.x, node.y, r + 4)
-      ctx.strokeStyle = color + '55'
+      // Outer ring (wide, faint)
+      hexPath(ctx, node.x, node.y, r + 4.5)
+      ctx.strokeStyle = color + '30'
       ctx.lineWidth = 1 / globalScale
       ctx.stroke()
-      ctx.restore()
-
-      // Second inner ring (sharper)
-      hexPath(ctx, node.x, node.y, r + 2.5)
-      ctx.strokeStyle = color + '40'
-      ctx.lineWidth = 0.75 / globalScale
+      // Inner ring (tighter, more opaque)
+      hexPath(ctx, node.x, node.y, r + 2)
+      ctx.strokeStyle = color + '60'
+      ctx.lineWidth = 1 / globalScale
       ctx.stroke()
     }
 
@@ -155,18 +150,15 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     ctx.fillStyle = color
     ctx.fill()
 
-    // Slight inner sheen
-    hexPath(ctx, node.x, node.y, r)
-    const sheen = ctx.createRadialGradient(node.x - r * 0.2, node.y - r * 0.3, 0, node.x, node.y, r)
-    sheen.addColorStop(0, 'rgba(255,255,255,0.18)')
-    sheen.addColorStop(1, 'rgba(255,255,255,0)')
-    ctx.fillStyle = sheen
+    // Darker inner hex for depth (no gradient — shadow canvas safe)
+    hexPath(ctx, node.x, node.y, r * 0.55)
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'
     ctx.fill()
 
     // Selected: white hex outline
     if (node.id === selectedId) {
-      hexPath(ctx, node.x, node.y, r + 2.5)
-      ctx.strokeStyle = 'rgba(255,255,255,0.85)'
+      hexPath(ctx, node.x, node.y, r + 2)
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)'
       ctx.lineWidth = 1.5 / globalScale
       ctx.stroke()
     }
