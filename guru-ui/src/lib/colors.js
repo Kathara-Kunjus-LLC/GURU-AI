@@ -6,8 +6,16 @@ export const PARENT_DOMAIN_COLORS = {
   'applied science': '#c084fc',
 }
 
-const DEFAULT_COLOR = '#94a3b8'
+function hashColor(str) {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 60%, 65%)`
+}
 
 export function domainColor(parentDomain) {
-  return PARENT_DOMAIN_COLORS[parentDomain?.toLowerCase()] ?? DEFAULT_COLOR
+  if (!parentDomain) return '#94a3b8'
+  return PARENT_DOMAIN_COLORS[parentDomain.toLowerCase()] ?? hashColor(parentDomain)
 }

@@ -92,9 +92,7 @@ export default function FilterBar({ nodes, filters, onFiltersChange }) {
                   key={type}
                   onClick={() => toggleEdgeType(type)}
                   className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition-all duration-150 ${
-                    active
-                      ? 'bg-slate-800/80 text-slate-300'
-                      : 'text-slate-700 hover:text-slate-600'
+                    active ? 'bg-slate-800/80 text-slate-300' : 'text-slate-700 hover:text-slate-600'
                   }`}
                 >
                   <span className="capitalize">{type}</span>
@@ -120,6 +118,21 @@ export default function FilterBar({ nodes, filters, onFiltersChange }) {
         >
           <span className="text-base leading-none">◇</span>
           <span>Bridge concepts only</span>
+        </button>
+
+        <Divider />
+
+        {/* Show staged */}
+        <button
+          onClick={() => onFiltersChange({ ...filters, showStaged: !filters.showStaged })}
+          className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs transition-all duration-150 ${
+            filters.showStaged
+              ? 'bg-amber-500/15 text-amber-300 border border-amber-500/25'
+              : 'text-slate-600 hover:text-slate-500 border border-transparent'
+          }`}
+        >
+          <span className="text-base leading-none">◌</span>
+          <span>Show staged notes</span>
         </button>
 
         <Divider />

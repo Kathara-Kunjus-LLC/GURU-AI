@@ -1,0 +1,14 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+PyMuPDF = ">=1.24.0,<2.0"
+sentence-transformers = ">=3.0.0,<4.0"
+numpy = ">=1.26.0,<3.0"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"

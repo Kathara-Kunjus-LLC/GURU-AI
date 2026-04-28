@@ -14,7 +14,6 @@ const LINK_DASH = {
   'related': [2, 6],
 }
 
-// Pointy-top hexagon path
 function hexPath(ctx, cx, cy, r) {
   ctx.beginPath()
   for (let i = 0; i < 6; i++) {
@@ -86,7 +85,6 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     return m
   }, [edges])
 
-  // Initialize once
   useEffect(() => {
     if (!containerRef.current || graphRef.current) return
     const el = containerRef.current
@@ -102,7 +100,6 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
       .width(el.clientWidth)
       .height(el.clientHeight)
 
-    // Stiffer links, tighter layout
     const linkForce = graphRef.current.d3Force('link')
     if (linkForce) linkForce.distance(90).strength(0.55)
     const chargeForce = graphRef.current.d3Force('charge')
@@ -124,6 +121,7 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     const deg = degreeMap.get(node.id) || 1
     const r = Math.max(4, Math.sqrt(deg) * 3.2)
     const color = domainColor(node.parentDomain)
+    const isStaged = node.isStaged === true
 
     let alpha = 1
     if (filters.bridgeOnly && !node.isBridge) alpha = 0.12
@@ -132,30 +130,42 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
 
     ctx.globalAlpha = alpha
 
-    if (node.isBridge) {
-      // Outer ring (wide, faint)
-      hexPath(ctx, node.x, node.y, r + 4.5)
-      ctx.strokeStyle = color + '30'
-      ctx.lineWidth = 1 / globalScale
+    if (isStaged) {
+      // Staged nodes: outline-only hex with dashed border, no fill
+      ctx.save()
+      ctx.setLineDash([3, 3])
+      hexPath(ctx, node.x, node.y, r)
+      ctx.strokeStyle = color + '90'
+      ctx.lineWidth = 1.5 / globalScale
       ctx.stroke()
-      // Inner ring (tighter, more opaque)
-      hexPath(ctx, node.x, node.y, r + 2)
-      ctx.strokeStyle = color + '60'
-      ctx.lineWidth = 1 / globalScale
-      ctx.stroke()
+      ctx.restore()
+      ctx.setLineDash([])
+
+      // Subtle fill to distinguish from background
+      hexPath(ctx, node.x, node.y, r)
+      ctx.fillStyle = color + '18'
+      ctx.fill()
+    } else {
+      if (node.isBridge) {
+        hexPath(ctx, node.x, node.y, r + 4.5)
+        ctx.strokeStyle = color + '30'
+        ctx.lineWidth = 1 / globalScale
+        ctx.stroke()
+        hexPath(ctx, node.x, node.y, r + 2)
+        ctx.strokeStyle = color + '60'
+        ctx.lineWidth = 1 / globalScale
+        ctx.stroke()
+      }
+
+      hexPath(ctx, node.x, node.y, r)
+      ctx.fillStyle = color
+      ctx.fill()
+
+      hexPath(ctx, node.x, node.y, r * 0.55)
+      ctx.fillStyle = 'rgba(0,0,0,0.2)'
+      ctx.fill()
     }
 
-    // Filled hexagon
-    hexPath(ctx, node.x, node.y, r)
-    ctx.fillStyle = color
-    ctx.fill()
-
-    // Darker inner hex for depth (no gradient — shadow canvas safe)
-    hexPath(ctx, node.x, node.y, r * 0.55)
-    ctx.fillStyle = 'rgba(0,0,0,0.2)'
-    ctx.fill()
-
-    // Selected: white hex outline
     if (node.id === selectedId) {
       hexPath(ctx, node.x, node.y, r + 2)
       ctx.strokeStyle = 'rgba(255,255,255,0.9)'
@@ -163,11 +173,10 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
       ctx.stroke()
     }
 
-    // Label
     const label = node.title.length > 26 ? node.title.slice(0, 25) + '…' : node.title
     const fontSize = Math.max(7.5, 10.5 / globalScale)
     ctx.font = `500 ${fontSize}px Inter, sans-serif`
-    ctx.fillStyle = `rgba(203,213,225,${alpha * 0.85})`
+    ctx.fillStyle = `rgba(203,213,225,${alpha * (isStaged ? 0.6 : 0.85)})`
     ctx.textAlign = 'center'
     ctx.fillText(label, node.x, node.y + r + fontSize + 2)
 
@@ -238,7 +247,6 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
       })
   }, [graphData, nodeCanvasObject, linkCanvasObject, handleNodeClick, handleNodeHover, onSelectNode, degreeMap])
 
-  // Focus camera on selected node
   useEffect(() => {
     if (!selectedId || !graphRef.current) return
     const node = graphData.nodes.find(n => n.id === selectedId)
@@ -268,6 +276,7 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
           <p className="text-slate-600 text-xs mt-1">
             {degreeMap.get(tooltip.id) || 0} connections
             {tooltip.isBridge && <span className="ml-2 text-indigo-400/80">◇ bridge</span>}
+            {tooltip.isStaged && <span className="ml-2 text-amber-400/80">◌ staged</span>}
           </p>
         </div>
       )}

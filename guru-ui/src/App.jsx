@@ -10,8 +10,9 @@ import NotePanel from './components/NotePanel'
 const DEFAULT_FILTERS = {
   search: '',
   hiddenDomains: new Set(),
-  hiddenEdgeTypes: new Set(['related']),   // related hidden by default
+  hiddenEdgeTypes: new Set(['related']),
   bridgeOnly: false,
+  showStaged: false,
   depth: 0,
 }
 
@@ -19,16 +20,18 @@ export default function App() {
   const navigate = useNavigate()
   const { title: routeTitle } = useParams()
 
-  const { data: vaultData, loading: vaultLoading, error: vaultError, connected } = useVault()
   const [filters, setFilters] = useState(DEFAULT_FILTERS)
 
+  const { data: vaultData, loading: vaultLoading, error: vaultError, connected } = useVault({
+    includeStaging: filters.showStaged,
+  })
+
   const selectedTitle = routeTitle ? decodeURIComponent(routeTitle) : null
-  const { data: noteData, loading: noteLoading, error: noteError } = useNote(selectedTitle, vaultData)
+  const { data: noteData, loading: noteLoading, error: noteError } = useNote(selectedTitle)
 
   const nodes = vaultData?.nodes ?? []
   const edges = vaultData?.edges ?? []
 
-  // Fuse instance for fuzzy search
   const fuse = useMemo(
     () => new Fuse(nodes, { keys: ['title'], threshold: 0.3 }),
     [nodes]
@@ -52,7 +55,6 @@ export default function App() {
     navigate('/')
   }
 
-  // Page title
   useEffect(() => {
     document.title = selectedTitle ? `${selectedTitle} — Guru` : 'Guru — Knowledge Graph'
   }, [selectedTitle])
@@ -82,14 +84,12 @@ export default function App() {
 
   return (
     <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
-      {/* Disconnected banner */}
       {!connected && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-400 text-xs text-center py-1.5 px-4 tracking-wide">
           Reconnecting to server…
         </div>
       )}
 
-      {/* Header */}
       <header className="bg-slate-950 border-b border-slate-800/60 px-5 py-3 flex items-center shrink-0">
         <button
           onClick={() => navigate('/')}
@@ -98,13 +98,15 @@ export default function App() {
           guru
         </button>
         <div className="flex items-center gap-4 text-xs text-slate-600">
-          <span>{nodes.length} notes</span>
+          <span>{nodes.filter(n => !n.isStaged).length} notes</span>
+          {nodes.some(n => n.isStaged) && (
+            <span className="text-amber-500/70">{nodes.filter(n => n.isStaged).length} staged</span>
+          )}
           <span>{edges.length} edges</span>
           <span className="text-indigo-500/70">{nodes.filter(n => n.isBridge).length} bridges</span>
         </div>
       </header>
 
-      {/* Main */}
       <div className="flex flex-1 overflow-hidden relative">
         <FilterBar
           nodes={nodes}

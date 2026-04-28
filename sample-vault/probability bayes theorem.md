@@ -2,46 +2,80 @@
 title: probability bayes theorem
 domain: probability
 parent-domain: mathematics
-source: Introduction to Probability, Ch. 2
+source: "Introduction to Probability, Ch. 2"
 prereqs: ["[[probability conditional probability]]", "[[probability sample space]]"]
 builds-into: ["[[machine learning naive bayes classifier]]", "[[machine learning bayesian network]]"]
 related: ["[[statistics gaussian distribution]]", "[[probability independence]]"]
 ---
 
-## Definition
+# Probability Bayes Theorem
 
-Bayes' theorem inverts a conditional probability:
+## Plain English
 
-$$P(H \mid E) = \frac{P(E \mid H)\,P(H)}{P(E)}$$
-
-- $P(H)$: prior probability of hypothesis $H$
-- $P(E \mid H)$: likelihood of evidence $E$ given $H$
-- $P(H \mid E)$: posterior probability of $H$ after observing $E$
+A rule for updating your belief about something after seeing new evidence.
 
 ## Intuition
 
-Start with a belief ($P(H)$). Observe evidence. Update the belief proportionally to how well the hypothesis predicts that evidence.
+Start with a belief about how likely something is. Observe evidence. Multiply your belief by how well that hypothesis predicted the evidence, then normalize. The result is your updated belief. It's a machine for converting "how likely was this evidence if my theory is true?" into "how likely is my theory now that I've seen this evidence?"
 
-## Formal notation
+## Formal Definition
 
-The denominator $P(E) = \sum_h P(E \mid H{=}h)\,P(H{=}h)$ is the marginal likelihood, obtained by summing over all hypotheses.
+> **Definition:**
+> $$P(H \mid E) = \frac{P(E \mid H)\,P(H)}{P(E)}$$
+>
+> Where:
+> - $P(H)$ is the **prior** — your belief before seeing evidence
+> - $P(E \mid H)$ is the **likelihood** — how probable the evidence is if $H$ is true
+> - $P(H \mid E)$ is the **posterior** — your updated belief
+> - $P(E) = \sum_h P(E \mid H{=}h)\,P(H{=}h)$ is the **marginal likelihood** (normalizing constant)
+
+## Worked Example
+
+A disease affects 1% of the population. A test is 90% sensitive (true positive rate) and 95% specific (true negative rate). You test positive. What is the probability you have the disease?
+
+$$P(D) = 0.01, \quad P(\text{pos} \mid D) = 0.90, \quad P(\text{pos} \mid \neg D) = 0.05$$
+
+$$P(\text{pos}) = 0.90 \times 0.01 + 0.05 \times 0.99 = 0.009 + 0.0495 = 0.0585$$
+
+$$P(D \mid \text{pos}) = \frac{0.90 \times 0.01}{0.0585} \approx 0.154$$
+
+Despite testing positive, there is only a 15% chance you have the disease — because the base rate is so low.
+
+## Key Properties
 
 $$P(H \mid E) \propto P(E \mid H)\,P(H)$$
 
-"Posterior is proportional to likelihood times prior."
+$$\sum_h P(H{=}h \mid E) = 1$$
 
-## Bridge to other domains
+$$P(E) = \sum_h P(E \mid H{=}h)\,P(H{=}h)$$
 
-In **statistics**, Bayes' theorem underlies Bayesian inference — a complete alternative to frequentist methods. Where frequentists treat parameters as fixed unknowns, Bayesians treat them as random variables with prior distributions updated by data.
+## Why It Works
 
-In **information theory**, the KL divergence $D_{KL}(P \| Q) = \sum P(x)\log\frac{P(x)}{Q(x)}$ measures how far a posterior is from a prior — it quantifies the information gained by observing the evidence.
+The theorem follows directly from the definition of conditional probability applied twice: $P(H \mid E) = P(H \cap E)/P(E)$ and $P(E \mid H) = P(H \cap E)/P(H)$. Dividing one by the other and rearranging gives Bayes' theorem. The insight is that updating beliefs is just renormalization after incorporating new information.
 
-In **machine learning**, the maximum a posteriori (MAP) estimate is exactly Bayes' theorem applied to parameter estimation: $\hat\theta_{MAP} = \arg\max_\theta P(\theta \mid \text{data})$.
+## Bridge to Other Domains
 
-## Where it appears
+> **→ Statistics:** Bayesian inference treats parameters as random variables with prior distributions updated by data. This is a complete alternative to frequentist statistics. The posterior $P(\theta \mid \text{data}) \propto P(\text{data} \mid \theta)\,P(\theta)$ is the central object.
+> *Why it matters:* It provides a principled way to incorporate prior knowledge and quantify uncertainty in parameter estimates.
 
-Bayesian neural networks, spam filtering, medical diagnosis, A/B testing, Kalman filters.
+> **→ Machine Learning:** MAP (maximum a posteriori) estimation is Bayes' theorem applied to parameter learning: $\hat\theta = \arg\max_\theta P(\theta \mid \text{data}) = \arg\max_\theta [P(\text{data} \mid \theta)\,P(\theta)]$. L2 regularization corresponds to a Gaussian prior.
+> *Why it matters:* Regularization has a probabilistic interpretation as imposing a prior on parameters.
 
-## Common confusions
+> **→ Information Theory:** The KL divergence $D_{KL}(P \| Q) = \sum P(x)\log\frac{P(x)}{Q(x)}$ measures how much information is gained moving from prior $Q$ to posterior $P$.
+> *Why it matters:* Bayesian updating is equivalent to minimizing KL divergence from the true distribution.
 
-The prior $P(H)$ must be specified before seeing data. In practice, the choice of prior is a modelling decision and can substantially affect the posterior when data is sparse.
+## Where It Appears
+
+- Spam filtering — posterior probability of spam given word frequencies
+- Medical diagnosis — posterior probability of disease given test results
+- A/B testing — Bayesian hypothesis testing
+- Kalman filters — recursive Bayesian estimation of state
+- Neural networks — Bayesian neural networks with weight posteriors
+
+## Common Confusions
+
+> ⚠ You might think **the prior $P(H)$ is arbitrary and makes results subjective** — but actually the posterior converges to the true distribution as data grows regardless of the prior (as long as the prior has nonzero mass everywhere). Priors matter most when data is scarce.
+
+## Guru's Note
+
+The most important number in Bayes' theorem is usually the one people forget: the base rate $P(H)$.

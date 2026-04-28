@@ -1,4 +1,33 @@
-pdfs/
-staging/
+# PDFs and staging — keep directory structure, ignore contents
+pdfs/*
+!pdfs/.gitkeep
+staging/*
+!staging/.gitkeep
+
+# Config — machine-specific paths, never commit
 config.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+
+# Cache — regeneratable artifacts (domains.json is intentionally NOT ignored)
+cache/embeddings.npy
+cache/embedding-index.json
+pdfs/cache/
+
+# Node
+guru-ui/node_modules/
+
+# UI build outputs
+guru-ui/dist/
+guru-ui/public/vault.json
+guru-ui/public/graph.json
+guru-ui/public/notes/
+
+# OS
 .DS_Store

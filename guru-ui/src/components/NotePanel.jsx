@@ -29,6 +29,11 @@ function MetadataRow({ note }) {
           ◇ bridge
         </Tag>
       )}
+      {note.isStaged && (
+        <Tag style={{ backgroundColor: 'rgba(245,158,11,0.12)', color: '#fbbf24', border: '1px solid rgba(245,158,11,0.25)' }}>
+          ◌ staged
+        </Tag>
+      )}
     </div>
   )
 }
@@ -133,7 +138,7 @@ export default function NotePanel({ note, edges, nodes, onClose, loading, error 
 
             {note.source && (
               <p className="text-[11px] text-slate-600 mb-5 -mt-2">
-                {note.source}
+                {Array.isArray(note.source) ? note.source.join(' · ') : note.source}
               </p>
             )}
 

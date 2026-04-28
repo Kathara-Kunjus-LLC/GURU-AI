@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 
 const IS_DEPLOY = import.meta.env.VITE_DEPLOY === 'true'
 
-export function useNote(title, vaultData) {
+export function useNote(title) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -14,21 +14,14 @@ export function useNote(title, vaultData) {
       return
     }
 
-    if (IS_DEPLOY) {
-      const node = vaultData?.nodes?.find(n => n.id === title)
-      if (node) {
-        setData(node)
-        setError(null)
-      } else {
-        setData(null)
-        setError('Note not found')
-      }
-      return
-    }
-
     setLoading(true)
     setError(null)
-    fetch(`/api/note/${encodeURIComponent(title)}`)
+
+    const url = IS_DEPLOY
+      ? `/notes/${encodeURIComponent(title)}.json`
+      : `/api/note/${encodeURIComponent(title)}`
+
+    fetch(url)
       .then(res => {
         if (!res.ok) throw new Error(`Server returned ${res.status}`)
         return res.json()

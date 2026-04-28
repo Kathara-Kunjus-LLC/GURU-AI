@@ -2,38 +2,74 @@
 title: probability sample space
 domain: probability
 parent-domain: mathematics
-source: Introduction to Probability, Ch. 1
+source: "Introduction to Probability, Ch. 1"
 prereqs: []
 builds-into: ["[[probability conditional probability]]", "[[probability bayes theorem]]"]
 related: ["[[statistics gaussian distribution]]"]
 ---
 
-## Definition
+# Probability Sample Space
 
-A sample space $\Omega$ is the set of all possible outcomes of a random experiment. An event $A$ is any subset of $\Omega$.
+## Plain English
+
+The complete list of everything that could possibly happen in a random experiment.
 
 ## Intuition
 
-Roll a die: the sample space is $\{1, 2, 3, 4, 5, 6\}$. The event "roll an even number" is the subset $\{2, 4, 6\}$.
+Before rolling a die, write down every face: {1, 2, 3, 4, 5, 6}. That list is the sample space — the universe of possibilities before any outcome is observed. An event is just a highlighted subset of that list.
 
-## Formal notation
+## Formal Definition
 
-$$P: 2^\Omega \to [0,1]$$
+> **Definition:**
+> A sample space $\Omega$ is the set of all possible outcomes of a random experiment. An event $A$ is any subset $A \subseteq \Omega$.
+>
+> A probability measure $P: 2^\Omega \to [0,1]$ assigns a number to every event, satisfying:
+> $$P(\Omega) = 1$$
+> $$P(A \cup B) = P(A) + P(B) \quad \text{ when } A \cap B = \emptyset$$
 
-A probability measure assigns a number in $[0,1]$ to every event, satisfying:
-- $P(\Omega) = 1$
-- $P(A \cup B) = P(A) + P(B)$ when $A \cap B = \emptyset$
+## Worked Example
 
-## Bridge to other domains
+Roll a fair six-sided die. Define event $A$ = "roll an even number."
 
-In **information theory**, sample spaces map directly to alphabets — the set of symbols a source can emit. The probability measure over the sample space becomes the source distribution $P(X)$, and entropy $H(X) = -\sum P(x)\log P(x)$ is defined over it.
+$$\Omega = \{1, 2, 3, 4, 5, 6\}$$
 
-In **measure theory**, a sample space with a $\sigma$-algebra and probability measure is a probability space — the rigorous foundation underlying all of statistics.
+$$A = \{2, 4, 6\}$$
 
-## Where it appears
+$$P(A) = \frac{|A|}{|\Omega|} = \frac{3}{6} = 0.5$$
 
-Everywhere in probability and statistics. Every probabilistic model begins with a sample space.
+## Key Properties
 
-## Common confusions
+$$P(\Omega) = 1$$
 
-The sample space must contain every possible outcome. Forgetting rare events (e.g., "the die lands on edge") technically makes the model wrong, even if practically negligible.
+$$P(\emptyset) = 0$$
+
+$$P(A^c) = 1 - P(A)$$
+
+$$P(A \cup B) = P(A) + P(B) - P(A \cap B)$$
+
+## Why It Works
+
+Probability is defined as a measure over a set. Requiring $P(\Omega) = 1$ means certainty that *something* happens. Additivity over disjoint events mirrors the intuition that non-overlapping possibilities should add up.
+
+## Bridge to Other Domains
+
+> **→ Information Theory:** The sample space maps directly to an alphabet — the set of symbols a source can emit. The probability measure over $\Omega$ becomes the source distribution $P(X)$, and entropy $H(X) = -\sum_x P(x)\log P(x)$ is defined over it.
+> *Why it matters:* Every information-theoretic quantity is built on top of a sample space.
+
+> **→ Measure Theory:** A sample space equipped with a $\sigma$-algebra and a probability measure forms a probability space — the rigorous foundation underlying all of modern statistics and stochastic analysis.
+> *Why it matters:* Understanding measure theory explains why probability works for continuous outcomes, where listing individual elements is impossible.
+
+## Where It Appears
+
+- Probability — foundation of every probabilistic model
+- Statistics — sample space defines what the data-generating process can produce
+- Information theory — source alphabets and entropy
+- Machine learning — the outcome space of any stochastic model
+
+## Common Confusions
+
+> ⚠ You might think **the sample space is just "all the likely outcomes"** — but actually it must include every possible outcome, including rare ones. Omitting low-probability events makes the model technically incorrect.
+
+## Guru's Note
+
+Always define your sample space explicitly before doing any probability calculation — ambiguous sample spaces are the root cause of most probability paradoxes.

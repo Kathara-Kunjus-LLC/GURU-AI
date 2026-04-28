@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 
 const IS_DEPLOY = import.meta.env.VITE_DEPLOY === 'true'
 
-export function useVault() {
+export function useVault({ includeStaging = false } = {}) {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -13,7 +13,12 @@ export function useVault() {
 
   async function fetchGraph() {
     try {
-      const url = IS_DEPLOY ? '/vault.json' : '/api/graph'
+      let url
+      if (IS_DEPLOY) {
+        url = '/graph.json'
+      } else {
+        url = includeStaging ? '/api/graph?include=staging' : '/api/graph'
+      }
       const res = await fetch(url)
       if (!res.ok) throw new Error(`Server returned ${res.status}`)
       const json = await res.json()
@@ -62,7 +67,7 @@ export function useVault() {
       clearTimeout(timeoutRef.current)
       wsRef.current?.close()
     }
-  }, [])
+  }, [includeStaging])
 
   return { data, loading, error, connected }
 }

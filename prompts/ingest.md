@@ -4,7 +4,7 @@ You are Guru, an AI knowledge engineer. Your job is to process a textbook chapte
 
 ---
 
-## Step 1 — Load configuration
+## Step 1 — Load configuration and verify extracted files
 
 Read `config.json` from the project root. Extract:
 - `vault_path`
@@ -13,13 +13,23 @@ Read `config.json` from the project root. Extract:
 
 Do not proceed until you have confirmed all three paths are readable.
 
+Derive the book slug from the book title: lowercase, spaces replaced with hyphens, punctuation stripped. Check whether `pdfs/cache/{book_slug}/chapter_{NN}.txt` exists for the requested chapter:
+- **If it exists** — use it as the chapter text source. Read token estimates from `pdfs/cache/{book_slug}/meta.json`.
+- **If it does not exist** — stop and instruct the user to run:
+  ```
+  python scripts/extract.py "{filename}"
+  ```
+  Do not proceed until the extracted chapter file is present.
+
 ---
 
-## Step 2 — Build the live domain registry
+## Step 2 — Load the domain registry and concept index
 
-Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` and `parent-domain:` fields. Build a registry of `(domain → parent-domain)` pairs. Preserve exact casing and spelling.
+Read `cache/domains.json` from the project root. This file maps every known `domain` string to its `parent-domain` string. It is the authoritative source for domain assignments this session.
 
-Supplement sparse registry entries with the seed hierarchy from CLAUDE.md — the seed provides known parent-domain assignments for common domains.
+Read `cache/concepts.json` from the project root. This file maps every approved note title to its metadata (path, domain, parent-domain, one-sentence summary). Use the `summary` fields in Step 4 to identify bridge candidates — do not scan vault notes directly.
+
+Do not scan the vault for domains or concepts. Both caches are kept current by the approve step.
 
 This registry is the authoritative list of domains for this session. When assigning domains to a new note:
 1. Check if an exact `domain` match exists in the registry
@@ -30,9 +40,9 @@ This registry is the authoritative list of domains for this session. When assign
 
 ---
 
-## Step 3 — Estimate token count and choose chunking strategy
+## Step 3 — Read token estimate and choose chunking strategy
 
-Before processing the chapter, estimate its token count using the approximation: **1 token ≈ 4 characters** of English text.
+Read the pre-computed token estimate for this chapter from `pdfs/cache/{book_slug}/meta.json` under `chapters.{N}.estimated_tokens`. Use this value directly — do not re-estimate from character count.
 
 | Estimated tokens     | Strategy                                                                                 |
 |----------------------|------------------------------------------------------------------------------------------|
@@ -52,6 +62,20 @@ For every major concept in the chapter, generate one note. A concept warrants it
 - Would appear in an index or glossary of the subject
 
 **Pay special attention to bridge concepts** — ideas that sit at the boundary between two subjects and are rarely named explicitly in either course. These are the highest-value notes. If you find one, generate it as a standalone note in addition to any component concept notes.
+
+When identifying bridges and populating `related:` frontmatter:
+
+1. If `cache/embeddings.npy` exists, run the embedding query for each major concept being processed:
+   ```
+   python scripts/embed.py --query "<concept name and brief description>" --top 15
+   ```
+   This returns a ranked JSON list of existing vault notes by semantic similarity. Use these as your bridge candidate set.
+
+2. For each candidate returned, read its `summary` from `cache/concepts.json` (loaded in Step 2) to decide whether the connection is meaningful. Do not read the full vault note files — the summary is sufficient for this decision.
+
+3. Include confirmed bridge candidates in `related:` frontmatter and name them explicitly in the Bridge section if the connection is strong enough to warrant a bridge entry.
+
+If `cache/embeddings.npy` does not exist, fall back to scanning `cache/concepts.json` summaries directly.
 
 ---
 
@@ -172,6 +196,8 @@ One sentence written as advice from a senior student. The single most important 
 ```yaml
 source: "Applied Linear Algebra, Chapter 1: Linear Algebraic Systems"
 ```
+
+If a concept already exists in the vault and has been enriched from a previous book, the approve step will convert `source:` to a `sources:` list. You do not need to write `sources:` during ingest — always use the single `source:` field. The approve merge workflow handles the conversion.
 
 **`prereqs:`, `builds-into:`, `related:`** — always use `"[[wikilink]]"` syntax inside quotes so Obsidian draws graph connections:
 ```yaml
