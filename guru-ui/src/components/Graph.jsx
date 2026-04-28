@@ -3,15 +3,27 @@ import ForceGraph from 'force-graph'
 import { domainColor } from '../lib/colors'
 
 const LINK_COLORS = {
-  'prereq': 'rgba(129,140,248,0.7)',
-  'builds-into': 'rgba(74,222,128,0.7)',
-  'related': 'rgba(148,163,184,0.3)',
+  'prereq': 'rgba(129,140,248,0.65)',
+  'builds-into': 'rgba(74,222,128,0.65)',
+  'related': 'rgba(148,163,184,0.2)',
 }
 
 const LINK_DASH = {
   'prereq': [],
-  'builds-into': [4, 4],
-  'related': [2, 5],
+  'builds-into': [5, 4],
+  'related': [2, 6],
+}
+
+// Pointy-top hexagon path
+function hexPath(ctx, cx, cy, r) {
+  ctx.beginPath()
+  for (let i = 0; i < 6; i++) {
+    const a = (Math.PI / 3) * i + Math.PI / 6
+    const x = cx + r * Math.cos(a)
+    const y = cy + r * Math.sin(a)
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+  }
+  ctx.closePath()
 }
 
 function getNodesWithinDepth(nodes, edges, rootId, depth) {
@@ -74,18 +86,27 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     return m
   }, [edges])
 
-  // Initialize the imperative force-graph instance once
+  // Initialize once
   useEffect(() => {
     if (!containerRef.current || graphRef.current) return
     const el = containerRef.current
+
     graphRef.current = ForceGraph()(el)
       .nodeId('id')
       .backgroundColor('#020617')
       .nodeCanvasObjectMode(() => 'replace')
       .linkCanvasObjectMode(() => 'replace')
-      .cooldownTime(2500)
+      .cooldownTime(3000)
+      .d3AlphaDecay(0.035)
+      .d3VelocityDecay(0.55)
       .width(el.clientWidth)
       .height(el.clientHeight)
+
+    // Stiffer links, tighter layout
+    const linkForce = graphRef.current.d3Force('link')
+    if (linkForce) linkForce.distance(90).strength(0.55)
+    const chargeForce = graphRef.current.d3Force('charge')
+    if (chargeForce) chargeForce.strength(-280)
 
     const ro = new ResizeObserver(() => {
       graphRef.current?.width(el.clientWidth).height(el.clientHeight)
@@ -101,43 +122,62 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
 
   const nodeCanvasObject = useCallback((node, ctx, globalScale) => {
     const deg = degreeMap.get(node.id) || 1
-    const r = Math.max(4, Math.sqrt(deg) * 3.5)
+    const r = Math.max(4, Math.sqrt(deg) * 3.2)
     const color = domainColor(node.parentDomain)
 
     let alpha = 1
-    if (filters.bridgeOnly && !node.isBridge) alpha = 0.15
-    if (searchMatches && searchMatches.size > 0 && !searchMatches.has(node.id)) alpha = 0.15
-    if (selectedId && node.id !== selectedId) alpha = Math.min(alpha, 0.6)
+    if (filters.bridgeOnly && !node.isBridge) alpha = 0.12
+    if (searchMatches && searchMatches.size > 0 && !searchMatches.has(node.id)) alpha = 0.12
+    if (selectedId && node.id !== selectedId) alpha = Math.min(alpha, 0.5)
 
     ctx.globalAlpha = alpha
 
     if (node.isBridge) {
-      ctx.beginPath()
-      ctx.moveTo(node.x, node.y - r * 1.3)
-      ctx.lineTo(node.x + r * 1.1, node.y)
-      ctx.lineTo(node.x, node.y + r * 1.3)
-      ctx.lineTo(node.x - r * 1.1, node.y)
-      ctx.closePath()
-    } else {
-      ctx.beginPath()
-      ctx.arc(node.x, node.y, r, 0, 2 * Math.PI)
-    }
+      // Outer glow ring
+      ctx.save()
+      ctx.shadowBlur = 10
+      ctx.shadowColor = color
+      hexPath(ctx, node.x, node.y, r + 4)
+      ctx.strokeStyle = color + '55'
+      ctx.lineWidth = 1 / globalScale
+      ctx.stroke()
+      ctx.restore()
 
-    ctx.fillStyle = color
-    ctx.fill()
-
-    if (node.id === selectedId) {
-      ctx.strokeStyle = '#fff'
-      ctx.lineWidth = 2 / globalScale
+      // Second inner ring (sharper)
+      hexPath(ctx, node.x, node.y, r + 2.5)
+      ctx.strokeStyle = color + '40'
+      ctx.lineWidth = 0.75 / globalScale
       ctx.stroke()
     }
 
-    const label = node.title.length > 28 ? node.title.slice(0, 27) + '…' : node.title
-    const fontSize = Math.max(8, 11 / globalScale)
-    ctx.font = `${fontSize}px sans-serif`
-    ctx.fillStyle = `rgba(226,232,240,${alpha})`
+    // Filled hexagon
+    hexPath(ctx, node.x, node.y, r)
+    ctx.fillStyle = color
+    ctx.fill()
+
+    // Slight inner sheen
+    hexPath(ctx, node.x, node.y, r)
+    const sheen = ctx.createRadialGradient(node.x - r * 0.2, node.y - r * 0.3, 0, node.x, node.y, r)
+    sheen.addColorStop(0, 'rgba(255,255,255,0.18)')
+    sheen.addColorStop(1, 'rgba(255,255,255,0)')
+    ctx.fillStyle = sheen
+    ctx.fill()
+
+    // Selected: white hex outline
+    if (node.id === selectedId) {
+      hexPath(ctx, node.x, node.y, r + 2.5)
+      ctx.strokeStyle = 'rgba(255,255,255,0.85)'
+      ctx.lineWidth = 1.5 / globalScale
+      ctx.stroke()
+    }
+
+    // Label
+    const label = node.title.length > 26 ? node.title.slice(0, 25) + '…' : node.title
+    const fontSize = Math.max(7.5, 10.5 / globalScale)
+    ctx.font = `500 ${fontSize}px Inter, sans-serif`
+    ctx.fillStyle = `rgba(203,213,225,${alpha * 0.85})`
     ctx.textAlign = 'center'
-    ctx.fillText(label, node.x, node.y + r + fontSize + 1)
+    ctx.fillText(label, node.x, node.y + r + fontSize + 2)
 
     ctx.globalAlpha = 1
   }, [degreeMap, filters.bridgeOnly, searchMatches, selectedId])
@@ -148,8 +188,8 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     if (!start?.x || !end?.x) return
 
     ctx.save()
-    ctx.strokeStyle = LINK_COLORS[link.type] ?? 'rgba(148,163,184,0.4)'
-    ctx.lineWidth = 1
+    ctx.strokeStyle = LINK_COLORS[link.type] ?? 'rgba(148,163,184,0.25)'
+    ctx.lineWidth = link.type === 'related' ? 0.75 : 1
     ctx.setLineDash(LINK_DASH[link.type] ?? [])
     ctx.beginPath()
     ctx.moveTo(start.x, start.y)
@@ -162,10 +202,11 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
       const len = Math.sqrt(dx * dx + dy * dy)
       if (len < 1) { ctx.restore(); return }
       const ux = dx / len, uy = dy / len
-      const deg = Math.max(4, Math.sqrt(degreeMap.get(typeof end === 'object' ? end.id : end) || 1) * 3.5)
-      const tipX = end.x - ux * (deg + 2)
-      const tipY = end.y - uy * (deg + 2)
-      const arrowLen = 6, arrowAngle = 0.4
+      const targetR = Math.max(4, Math.sqrt(degreeMap.get(typeof end === 'object' ? end.id : end) || 1) * 3.2)
+      const tipX = end.x - ux * (targetR + 3)
+      const tipY = end.y - uy * (targetR + 3)
+      const arrowLen = 5, arrowAngle = 0.42
+      ctx.setLineDash([])
       ctx.beginPath()
       ctx.moveTo(tipX, tipY)
       ctx.lineTo(tipX - arrowLen * Math.cos(-arrowAngle + Math.atan2(uy, ux)), tipY - arrowLen * Math.sin(-arrowAngle + Math.atan2(uy, ux)))
@@ -186,7 +227,6 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
     setTooltip(node || null)
   }, [])
 
-  // Push updated data + callbacks into the graph whenever they change
   useEffect(() => {
     if (!graphRef.current) return
     graphRef.current
@@ -198,7 +238,7 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
       .onBackgroundClick(() => onSelectNode(null))
       .nodePointerAreaPaint((node, color, ctx) => {
         const deg = degreeMap.get(node.id) || 1
-        const r = Math.max(4, Math.sqrt(deg) * 3.5) + 4
+        const r = Math.max(4, Math.sqrt(deg) * 3.2) + 5
         ctx.fillStyle = color
         ctx.beginPath()
         ctx.arc(node.x, node.y, r, 0, 2 * Math.PI)
@@ -225,16 +265,17 @@ export default function Graph({ nodes, edges, filters, selectedId, onSelectNode,
 
       {tooltip && (
         <div
-          className="pointer-events-none fixed z-50 bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-sm shadow-xl max-w-xs"
-          style={{ left: mousePos.x + 14, top: mousePos.y - 10 }}
+          className="pointer-events-none fixed z-50 bg-slate-900/95 border border-slate-700/60 rounded-xl px-3.5 py-2.5 text-sm shadow-2xl backdrop-blur-sm max-w-xs"
+          style={{ left: mousePos.x + 16, top: mousePos.y - 12 }}
         >
-          <p className="text-slate-100 font-medium">{tooltip.title}</p>
-          <p className="text-slate-400 text-xs mt-0.5">
-            {tooltip.domain} · {tooltip.parentDomain}
+          <p className="text-slate-100 font-medium text-sm leading-snug">{tooltip.title}</p>
+          <p className="text-slate-500 text-xs mt-0.5">
+            {tooltip.domain}
+            {tooltip.parentDomain && <span className="text-slate-700"> · {tooltip.parentDomain}</span>}
           </p>
-          <p className="text-slate-500 text-xs">
+          <p className="text-slate-600 text-xs mt-1">
             {degreeMap.get(tooltip.id) || 0} connections
-            {tooltip.isBridge && <span className="ml-2 text-indigo-400">◇ bridge</span>}
+            {tooltip.isBridge && <span className="ml-2 text-indigo-400/80">◇ bridge</span>}
           </p>
         </div>
       )}

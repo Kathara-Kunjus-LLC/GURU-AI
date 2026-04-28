@@ -59,8 +59,11 @@ export default function App() {
 
   if (vaultLoading) {
     return (
-      <div className="h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-sm">
-        Loading vault…
+      <div className="h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex items-center gap-2 text-slate-500 text-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+          Loading vault…
+        </div>
       </div>
     )
   }
@@ -68,12 +71,10 @@ export default function App() {
   if (vaultError) {
     return (
       <div className="h-screen bg-slate-950 flex items-center justify-center">
-        <div className="text-center max-w-md px-4">
-          <p className="text-red-400 font-medium mb-2">Could not load vault</p>
-          <p className="text-slate-400 text-sm">{vaultError}</p>
-          <p className="text-slate-500 text-xs mt-3">
-            Make sure the Express server is running: <code className="text-slate-300">npm run dev</code>
-          </p>
+        <div className="text-center max-w-sm px-6 py-8 rounded-2xl bg-slate-900/60 border border-slate-800">
+          <p className="text-slate-200 font-medium mb-1">Could not load vault</p>
+          <p className="text-slate-500 text-sm mb-4">{vaultError}</p>
+          <code className="text-xs bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg">npm run dev</code>
         </div>
       </div>
     )
@@ -83,23 +84,24 @@ export default function App() {
     <div className="h-screen bg-slate-950 flex flex-col overflow-hidden">
       {/* Disconnected banner */}
       {!connected && (
-        <div className="bg-amber-900/70 border-b border-amber-700 text-amber-200 text-xs text-center py-1.5 px-4">
-          Disconnected — reconnecting to server…
+        <div className="bg-amber-500/10 border-b border-amber-500/20 text-amber-400 text-xs text-center py-1.5 px-4 tracking-wide">
+          Reconnecting to server…
         </div>
       )}
 
       {/* Header */}
-      <header className="bg-slate-900 border-b border-slate-700 px-4 py-2.5 flex items-center gap-3 shrink-0">
-        <button onClick={() => navigate('/')} className="text-slate-200 font-bold tracking-tight">
-          Guru
+      <header className="bg-slate-950 border-b border-slate-800/60 px-5 py-3 flex items-center shrink-0">
+        <button
+          onClick={() => navigate('/')}
+          className="text-slate-100 font-semibold tracking-tight text-base mr-auto"
+        >
+          guru
         </button>
-        <span className="text-slate-600">·</span>
-        <span className="text-slate-400 text-sm">{nodes.length} notes</span>
-        <span className="text-slate-600">·</span>
-        <span className="text-slate-400 text-sm">{edges.length} connections</span>
-        <span className="ml-auto text-slate-400 text-sm">
-          {nodes.filter(n => n.isBridge).length} bridge concepts
-        </span>
+        <div className="flex items-center gap-4 text-xs text-slate-600">
+          <span>{nodes.length} notes</span>
+          <span>{edges.length} edges</span>
+          <span className="text-indigo-500/70">{nodes.filter(n => n.isBridge).length} bridges</span>
+        </div>
       </header>
 
       {/* Main */}
