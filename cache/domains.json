@@ -1,0 +1,21 @@
+{
+  "linear algebra": "mathematics",
+  "statistics": "mathematics",
+  "probability": "mathematics",
+  "numerical methods": "mathematics",
+  "machine learning": "computer science",
+  "artificial intelligence": "computer science",
+  "data science": "computer science",
+  "databases": "computer science",
+  "systems design": "computer science",
+  "coding": "computer science",
+  "aws": "cloud & infrastructure",
+  "azure": "cloud & infrastructure",
+  "distributed systems": "cloud & infrastructure",
+  "portfolio theory": "finance",
+  "derivatives": "finance",
+  "quantitative finance": "finance",
+  "signal processing": "applied science",
+  "differential equations": "applied science",
+  "control systems": "applied science"
+}

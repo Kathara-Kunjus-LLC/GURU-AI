@@ -15,17 +15,25 @@ Do not proceed until you have confirmed all three paths are readable.
 
 ---
 
-## Step 2 — Identify the target PDF
+## Step 2 — Identify the target PDF and check for extracted files
 
 The user will specify a filename or partial name. Locate the matching file under `pdfs_path`. If more than one file matches, list the candidates and ask the user to confirm which one to use before proceeding.
 
+Derive the book slug from the title: lowercase, spaces replaced with hyphens, punctuation stripped (e.g. `"Applied Linear Algebra"` → `applied-linear-algebra`).
+
+Check whether `pdfs/cache/{book_slug}/toc.json` exists:
+- **If it exists** — read `toc.json` for structure and `meta.json` for token estimates. Do not parse the PDF for TOC or chapter structure.
+- **If it does not exist** — stop and instruct the user to run the extraction script first:
+  ```
+  python scripts/extract.py "{filename}"
+  ```
+  Do not proceed until the extraction output is present.
+
 ---
 
-## Step 3 — Build the live domain registry
+## Step 3 — Load the domain registry
 
-Using MCP, list all `.md` files under `vault_path`. For each file, read its frontmatter and extract the `domain:` and `parent-domain:` fields. Build a registry of `(domain → parent-domain)` pairs. Preserve exact casing and spelling.
-
-Supplement sparse registry entries with the seed hierarchy from CLAUDE.md — the seed provides known parent-domain assignments for common domains.
+Read `cache/domains.json` from the project root. This file maps every known `domain` string to its `parent-domain` string. It is the authoritative source for domain assignments this session — do not scan the vault for domains.
 
 This registry is the authoritative list of domains for this session. When assigning domains to chapters:
 1. Check if an exact `domain` match exists in the registry
@@ -38,13 +46,11 @@ This registry is the authoritative list of domains for this session. When assign
 
 ## Step 4 — Read the table of contents and preface
 
-Extract the following from the PDF:
-- Book title and author
-- Total chapter count
-- For each chapter: chapter number, title, and any listed section headings
-- The preface or introduction (used to understand the author's intent, assumed audience, and how chapters relate)
+Read the chapter structure from `pdfs/cache/{book_slug}/toc.json` (loaded in Step 2). This file contains the book title, author, and for each chapter: number, title, section headings, and page range.
 
-If the PDF has no explicit table of contents, reconstruct one from chapter headings found in the document.
+For the preface or introduction: read `pdfs/cache/{book_slug}/chapter_01.txt` (or the chapter labelled as introduction/preface in `toc.json`) to understand the author's intent, assumed audience, and how chapters relate.
+
+Do not re-parse the PDF for structural information — use the extracted files.
 
 ---
 
@@ -83,12 +89,12 @@ If a chapter requires a domain not in the registry, propose a new `domain` name 
 
 ### 5d — Bridge predictions
 
-Scan the existing vault notes using MCP. For each chapter, identify whether any of its topics are likely to connect to concepts already in the vault. A bridge prediction should name:
+Read `cache/concepts.json` from the project root. For each chapter, scan the `summary` fields in this index to identify concepts already in the vault that are likely to connect to the chapter's topics. A bridge prediction should name:
 - The chapter
-- The vault note it may connect to
+- The existing note it may connect to (use the exact key from `cache/concepts.json`)
 - The nature of the likely connection (one sentence)
 
-If the vault is empty or contains no relevant notes, state that explicitly rather than leaving this section blank.
+If `cache/concepts.json` is empty or contains no relevant entries, state that explicitly rather than leaving this section blank.
 
 ### 5e — Recommended ingestion order
 

@@ -23,11 +23,13 @@ Always read `config.json` at the start of every session for canonical paths. Do 
 
 ## Prompts
 
-Three prompts live in `prompts/`:
+Five prompts live in `prompts/`:
 
 - `prompts/overview.md` — book map generation before chapter processing begins
 - `prompts/ingest.md` — note generation from a PDF chapter
+- `prompts/review.md` — quality validation of staged notes before approval
 - `prompts/approve.md` — moving staged notes into the Vedam vault
+- `prompts/verify.md` — cache re-sync and wikilink integrity check (run after manual Obsidian edits)
 
 ---
 
@@ -81,22 +83,52 @@ Domain naming rules: **lowercase, full words, no abbreviations**.
 
 ---
 
-## Domain Registry — Dynamic, Not Static
+## Domain Registry — Cache-Backed
 
-Domains are **never hardcoded**. At the start of every session:
+Domains are **never hardcoded**. At the start of every session, read `cache/domains.json` from the project root — do not scan the vault.
 
-1. Scan all `.md` files in the vault using MCP
-2. Read each file's frontmatter `domain:` and `parent-domain:` fields
-3. Build a live registry of existing `(domain → parent-domain)` pairs (exact strings, case-preserved)
-4. Use the seed hierarchy above to fill gaps when the vault is sparse
-5. When assigning domains to a new note:
-   - Check if an exact `domain` match exists in the registry
-   - If yes — use it, and assign the matching `parent-domain` from the registry
-   - If no match — propose a new `domain` name **and** its `parent-domain`
-   - If the `parent-domain` is also new — propose that too
-   - Flag **all** new proposals in the session summary for user confirmation
-6. Never invent domain or parent-domain values silently
-7. If a domain proposal is made and the user does not confirm it in the same session, do not use it
+`cache/domains.json` maps every known `domain` string to its `parent-domain` string. It is seeded from the hierarchy above and updated by the approve step whenever a new domain is confirmed by the user.
+
+When assigning domains to a new note:
+- Check if an exact `domain` match exists in `cache/domains.json`
+- If yes — use it, and assign the matching `parent-domain` from the file
+- If no match — propose a new `domain` name **and** its `parent-domain`
+- If the `parent-domain` is also new — propose that too
+- Flag **all** new proposals in the session summary for user confirmation
+- Never invent domain or parent-domain values silently
+- If a domain proposal is made and the user does not confirm it in the same session, do not use it
+
+If `cache/domains.json` is missing or unreadable, fall back to the seed hierarchy above and notify the user.
+
+---
+
+## Cache Layer
+
+Two files in `cache/` replace all vault scanning. Read them at the start of every session; the approve step writes updates after each successful vault write.
+
+| File | Contents | Tracked in git? |
+|---|---|---|
+| `cache/domains.json` | `domain → parent-domain` map | Yes — canonical taxonomy |
+| `cache/concepts.json` | `note title → {path, domain, parent-domain, summary}` | Yes |
+| `cache/embeddings.npy` | Embedding matrix for bridge candidate search | No — regeneratable |
+| `cache/embedding-index.json` | Row index → note title mapping | No — regeneratable |
+
+**`cache/concepts.json` entry shape:**
+```json
+"probability bayes theorem": {
+  "path": "probability/probability bayes theorem.md",
+  "domain": "probability",
+  "parent-domain": "mathematics",
+  "summary": "A rule for updating belief given new evidence using prior probability and likelihood."
+}
+```
+
+**Cache lifecycle:**
+- `cache/domains.json` — seeded on first use from the seed hierarchy; approve appends confirmed new domains
+- `cache/concepts.json` — starts as `{}`; approve appends one entry per note moved to vault
+- If either file becomes stale (e.g., notes edited or renamed directly in Obsidian), run `prompts/verify.md` to re-sync from the vault
+
+**Do not scan the vault for domains or concepts during overview, ingest, or approve sessions. Read the cache files instead.**
 
 ---
 
@@ -116,36 +148,52 @@ Token estimation: ~1 token per 4 characters of plain text is a safe approximatio
 
 ## Note Schema
 
-Every generated note must have this exact frontmatter followed by these exact sections:
+Every generated note must have this exact frontmatter followed by these exact sections in order:
 
 ```markdown
 ---
-title: <full concept name>
-domain: <exact domain string from live registry, or proposed new domain>
-parent-domain: <exact parent-domain string from live registry, or proposed new parent-domain>
-source: <textbook title, chapter number and name>
-prereqs: [<list of note titles this concept depends on>]
-builds-into: [<list of note titles that build on this concept>]
-related: [<list of thematically related note titles>]
+title: <full concept name — lowercase, singular, no abbreviations>
+domain: <exact domain string from cache/domains.json, or proposed new domain>
+parent-domain: <exact parent-domain string from cache/domains.json, or proposed new parent-domain>
+source: "<textbook title, Chapter N: Chapter Name>"
+prereqs: ["[[note title]]", "[[note title]]"]
+builds-into: ["[[note title]]"]
+related: ["[[note title]]"]
 ---
 
-## Definition
+# Concept Name in Title Case
+
+## Plain English
 
 ## Intuition
 
-## Formal notation
+## Formal Definition
 
-## Bridge to other domains
+## Worked Example
 
-## Where it appears
+## Key Properties
 
-## Common confusions
+## Why It Works
+
+## Bridge to Other Domains
+
+## Where It Appears
+
+## Common Confusions
+
+## Guru's Note
 ```
 
-The **Bridge to other domains** section is the most important. It must:
-- Name the specific mechanism connecting this concept to another subject
-- Be explicit — name the other domain and the connecting idea
-- Never be left vague or omitted
+**Frontmatter rules:**
+- `source:` always wrapped in double quotes
+- `prereqs:`, `builds-into:`, `related:` always use `"[[wikilink]]"` syntax so Obsidian draws graph edges
+- Empty lists: `prereqs: []`
+- Multi-source notes (after a merge): use `sources:` as a YAML list instead of `source:`
+
+**The Bridge to Other Domains section is the most important.** Each entry must:
+- Use the format `> **→ [Domain Name]:** one sentence naming the exact mechanism`
+- Name a specific mechanism — never say "this concept is used in X" without explaining how
+- Be followed by `> *Why it matters:* one sentence on the practical payoff`
 
 ---
 
@@ -176,6 +224,8 @@ At the end of every ingest session, print a summary that includes:
 
 - Always read `config.json` first — do not assume paths
 - Never write notes directly to the vault; always write to staging first
+- The overview prompt is the only exception: it writes the book map directly to the vault root (not staging). Book maps are reference documents, not concept notes, and bypass the staging step intentionally.
 - Never overwrite existing vault notes without explicit user confirmation
 - Use MCP for all filesystem reads/writes to the vault
+- Do not scan the vault for domains or concepts — read `cache/domains.json` and `cache/concepts.json` instead
 - If a domain or parent-domain proposal is made and the user does not confirm it in the same session, do not use it
