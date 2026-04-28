@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* KaTeX display math centering */
+.katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.5rem 0;
+}
+
+/* Prose wikilink style */
+.wikilink {
+  color: #818cf8;
+  cursor: pointer;
+  text-decoration: none;
+}
+.wikilink:hover {
+  text-decoration: underline;
+}
