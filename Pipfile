@@ -4,11 +4,12 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-PyMuPDF = ">=1.24.0,<2.0"
-sentence-transformers = ">=3.0.0,<4.0"
-numpy = ">=1.26.0,<3.0"
+PyMuPDF = ">=1.24.0"
+sentence-transformers = ">=3.0.0"
+numpy = ">=1.26.0"
+anthropic = ">=0.44.0"
 
 [dev-packages]
 
 [requires]
-python_version = "3.11"
+python_version = "3.14"

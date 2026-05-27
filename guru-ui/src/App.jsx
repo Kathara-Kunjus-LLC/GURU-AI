@@ -6,6 +6,7 @@ import { useNote } from './hooks/useNote'
 import Graph from './components/Graph'
 import FilterBar from './components/FilterBar'
 import NotePanel from './components/NotePanel'
+import { AppHeader } from './components/AppShell'
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -90,22 +91,14 @@ export default function App() {
         </div>
       )}
 
-      <header className="bg-slate-950 border-b border-slate-800/60 px-5 py-3 flex items-center shrink-0">
-        <button
-          onClick={() => navigate('/')}
-          className="text-slate-100 font-semibold tracking-tight text-base mr-auto"
-        >
-          guru
-        </button>
-        <div className="flex items-center gap-4 text-xs text-slate-600">
-          <span>{nodes.filter(n => !n.isStaged).length} notes</span>
-          {nodes.some(n => n.isStaged) && (
-            <span className="text-amber-500/70">{nodes.filter(n => n.isStaged).length} staged</span>
-          )}
-          <span>{edges.length} edges</span>
-          <span className="text-indigo-500/70">{nodes.filter(n => n.isBridge).length} bridges</span>
-        </div>
-      </header>
+      <AppHeader>
+        <span>{nodes.filter(n => !n.isStaged).length} notes</span>
+        {nodes.some(n => n.isStaged) && (
+          <span className="text-amber-500/70">{nodes.filter(n => n.isStaged).length} staged</span>
+        )}
+        <span>{edges.length} edges</span>
+        <span className="text-indigo-500/70">{nodes.filter(n => n.isBridge).length} bridges</span>
+      </AppHeader>
 
       <div className="flex flex-1 overflow-hidden relative">
         <FilterBar
