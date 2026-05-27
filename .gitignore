@@ -6,6 +6,7 @@ staging/*
 
 # Config — machine-specific paths, never commit
 config.json
+.env
 
 # Python
 __pycache__/
@@ -18,6 +19,8 @@ venv/
 # Cache — regeneratable artifacts (domains.json is intentionally NOT ignored)
 cache/embeddings.npy
 cache/embedding-index.json
+cache/ingest-state.json
+cache/jobs.json
 pdfs/cache/
 
 # Node
