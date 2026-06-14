@@ -1,1 +1,194 @@
-{}
+{
+  "linear algebra conductance matrix": {
+    "path": "linear algebra/linear algebra conductance matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The conductance matrix is a diagonal positive definite matrix whose entries are the reciprocals of the wire resistances in a network."
+  },
+  "linear algebra discrete gradient divergence duality": {
+    "path": "linear algebra/linear algebra discrete gradient divergence duality.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "In a spring-mass chain, the incidence matrix $A$ computes discrete differences (a gradient), while its transpose $A^T$ computes discrete sums (a divergence), and together they produce the tridiagonal stiffness matrix $K = A^T C A$."
+  },
+  "linear algebra electrical mechanical correspondence": {
+    "path": "linear algebra/linear algebra electrical mechanical correspondence.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The equilibrium equations for an electrical resistive network and a mechanical mass–spring structure are mathematically identical, differing only in the physical meaning of each variable and matrix."
+  },
+  "linear algebra electrical network graph model": {
+    "path": "linear algebra/linear algebra electrical network graph model.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An electrical network of wires and junction points is modeled as a weighted directed graph where nodes are junctions and edges are wires carrying resistance weights."
+  },
+  "linear algebra truss stiffness matrix": {
+    "path": "linear algebra/linear algebra truss stiffness matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The stiffness matrix $K$ of a truss is the symmetric positive semidefinite matrix that directly relates nodal displacements to the external forces needed to maintain those displacements at equilibrium."
+  },
+  "linear algebra truss stability theorem": {
+    "path": "linear algebra/linear algebra truss stability theorem.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A truss can resist any external loading without collapsing if and only if the only displacement that stretches no bar is the zero displacement — in other words, the reduced incidence matrix has no nontrivial kernel."
+  },
+  "linear algebra equilibrium potential energy": {
+    "path": "linear algebra/linear algebra equilibrium potential energy.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The total energy stored in a spring-mass system as a quadratic function of displacements, whose unique minimum point is exactly the equilibrium configuration."
+  },
+  "linear algebra gram matrix positive definiteness": {
+    "path": "linear algebra/linear algebra gram matrix positive definiteness.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Any matrix of the form $A^T C A$ with $C$ positive definite and $A$ full column rank is automatically positive definite — this is the algebraic engine behind why equilibrium systems have unique solutions."
+  },
+  "linear algebra hooke law": {
+    "path": "linear algebra/linear algebra hooke law.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A spring's internal force is proportional to how much it has been stretched or compressed, with a positive stiffness constant that measures how hard the spring resists deformation."
+  },
+  "linear algebra graph laplacian": {
+    "path": "linear algebra/linear algebra graph laplacian.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The graph Laplacian is a matrix built from a graph's structure that generalizes the second-derivative operator to networks, with diagonal entries equal to vertex degrees and off-diagonal entries equal to $-1$ for adjacent vertices."
+  },
+  "linear algebra kirchhoff current law": {
+    "path": "linear algebra/linear algebra kirchhoff current law.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "At every node in a network, the total current flowing out along wires equals the external current being injected at that node — no charge accumulates."
+  },
+  "linear algebra kirchhoff voltage law": {
+    "path": "linear algebra/linear algebra kirchhoff voltage law.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The sum of voltages around any closed loop in a network is zero, which is the statement that voltage is a potential difference and not path-dependent."
+  },
+  "linear algebra mass-spring chain": {
+    "path": "linear algebra/linear algebra mass-spring chain.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A chain of masses connected by springs, analyzed as a linear system to find how far each mass moves when external forces are applied."
+  },
+  "linear algebra network battery source": {
+    "path": "linear algebra/linear algebra network battery source.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A battery in a network is a voltage source along a wire that shifts the voltage equation by a fixed amount, and its effect is equivalent to injecting specific current sources at the wire's two endpoints."
+  },
+  "linear algebra network equilibrium solvability condition": {
+    "path": "linear algebra/linear algebra network equilibrium solvability condition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A connected electrical network can reach a steady state only if the total current being injected equals the total current being extracted — the net current into the network must be zero."
+  },
+  "linear algebra network equilibrium system": {
+    "path": "linear algebra/linear algebra network equilibrium system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The three laws governing an electrical network (voltage law, Ohm's law, current law) combine into a single linear system relating node voltages to external current sources."
+  },
+  "linear algebra network grounding": {
+    "path": "linear algebra/linear algebra network grounding.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Grounding a node means fixing its voltage potential to zero, which eliminates the free parameter in the voltage solution and makes the reduced system uniquely solvable."
+  },
+  "linear algebra network power minimization": {
+    "path": "linear algebra/linear algebra network power minimization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An electrical network at equilibrium distributes voltage potentials so as to minimize the total power dissipated as heat across all wires."
+  },
+  "linear algebra network resistivity matrix": {
+    "path": "linear algebra/linear algebra network resistivity matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The resistivity matrix combines the network's topology and wire conductances into a single matrix whose entries encode how strongly each pair of nodes is electrically coupled."
+  },
+  "linear algebra network voltage potential ambiguity": {
+    "path": "linear algebra/linear algebra network voltage potential ambiguity.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Absolute voltage potentials at network nodes are not uniquely determined — only their differences are physical — so the equilibrium system has infinitely many solutions that all produce identical, unique currents and wire voltages."
+  },
+  "linear algebra ohm law matrix form": {
+    "path": "linear algebra/linear algebra ohm law matrix form.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The current through each wire is proportional to the voltage across it, with proportionality constant equal to the wire's conductance (reciprocal of resistance)."
+  },
+  "linear algebra reduced incidence matrix": {
+    "path": "linear algebra/linear algebra reduced incidence matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A matrix that encodes which masses each spring connects, including the fixed boundary supports, so that spring elongations can be computed from mass displacements by a single matrix multiply."
+  },
+  "linear algebra statically determinate system": {
+    "path": "linear algebra/linear algebra statically determinate system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A mechanical system where the internal forces can be found directly from the force-balance equations, without needing to know material stiffnesses or solve for displacements first."
+  },
+  "linear algebra statically indeterminate system": {
+    "path": "linear algebra/linear algebra statically indeterminate system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A mechanical system in which the internal forces cannot be determined from the force-balance equations alone — you must first solve for the displacements using the full stiffness system."
+  },
+  "linear algebra stiffness matrix": {
+    "path": "linear algebra/linear algebra stiffness matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The matrix $K = A^T C A$ that converts mass displacements directly into the forces needed to hold the system in equilibrium."
+  },
+  "linear algebra structural mechanics electrical network analogy": {
+    "path": "linear algebra/linear algebra structural mechanics electrical network analogy.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Trusses and resistor networks are governed by the same three-equation mathematical skeleton: a gradient law, a constitutive law, and a divergence (balance) law — with every quantity having a direct counterpart in both worlds."
+  },
+  "linear algebra truss bar elongation linear approximation": {
+    "path": "linear algebra/linear algebra truss bar elongation linear approximation.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "When a bar's endpoints move by small amounts, the change in the bar's length can be well approximated by a simple dot product formula instead of the exact nonlinear square-root expression."
+  },
+  "linear algebra truss hooke law constitutive relation": {
+    "path": "linear algebra/linear algebra truss hooke law constitutive relation.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Each bar in a truss acts like a spring: its internal force is proportional to how much it has been stretched or compressed."
+  },
+  "linear algebra truss incidence matrix": {
+    "path": "linear algebra/linear algebra truss incidence matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The incidence matrix of a truss is a rectangular array that encodes, for each bar, how much each node's displacement contributes to that bar's elongation."
+  },
+  "linear algebra truss mechanism": {
+    "path": "linear algebra/linear algebra truss mechanism.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A mechanism is a non-rigid deformation of a structure — a way the nodes can move and change shape without stretching or compressing any bar, even after the structure has been grounded to remove rigid motions."
+  },
+  "linear algebra truss rigid motion kernel": {
+    "path": "linear algebra/linear algebra truss rigid motion kernel.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The kernel of a truss's incidence matrix consists of all displacement patterns that move the structure as a rigid body — translations and (linearized) rotations — without stretching any bar."
+  },
+  "linear algebra truss statically determinate vs indeterminate": {
+    "path": "linear algebra/linear algebra truss statically determinate vs indeterminate.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A truss is statically determinate if the internal bar forces can be computed directly from force balance alone (without knowing displacements), and statically indeterminate if one must first solve for displacements via the full stiffness system."
+  }
+}
