@@ -160,6 +160,32 @@ export function getJobWithLogs(id) {
   return { ...rest, logs: rest.logs.slice(-200) }
 }
 
+export function deleteJob(id) {
+  const job = store.get(id)
+  if (!job || job.status === 'running') return false
+  store.delete(id)
+  queue = queue.filter(qid => qid !== id)
+  persist()
+  return true
+}
+
+export function clearJobs(filter = 'inactive') {
+  const removable = filter === 'all'
+    ? ['completed', 'failed', 'paused']
+    : ['completed', 'failed', 'paused']
+  // 'queued' and 'running' are never bulk-deleted for safety
+  let count = 0
+  for (const [id, job] of store.entries()) {
+    if (removable.includes(job.status)) {
+      store.delete(id)
+      count++
+    }
+  }
+  queue = queue.filter(id => store.has(id))
+  persist()
+  return count
+}
+
 export function addSseClient(id, res) {
   const job = store.get(id)
   if (!job) return false
@@ -315,6 +341,16 @@ async function runNext() {
   // Step 2: batch_ingest.py
   updateJob(id, { currentStep: 'process' })
   appendLog(id, '[runner] Step 2/2: ingesting with Claude API...')
+
+  const chapterDomainArgs = []
+  try {
+    const metaPath = path.join(_projectRoot, 'pdfs', 'cache', job.bookSlug, 'meta.json')
+    const bookMeta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'))
+    const chapterMeta = bookMeta.chapters?.[String(job.chapter)]
+    if (chapterMeta?.domain) chapterDomainArgs.push('--chapter-domain', chapterMeta.domain)
+    if (chapterMeta?.['parent-domain']) chapterDomainArgs.push('--parent-domain', chapterMeta['parent-domain'])
+  } catch {}
+
   const { code: ingestCode, summary } = await spawnScript(
     id,
     pythonCmd,
@@ -323,6 +359,7 @@ async function runNext() {
       job.bookSlug,
       String(job.chapter),
       ...(job.resume ? ['--resume'] : []),
+      ...chapterDomainArgs,
     ],
     cwd
   )

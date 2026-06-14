@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppShell from '../components/AppShell'
 import { useJobs } from '../hooks/useJobs'
@@ -26,7 +26,23 @@ export default function IngestPage() {
   const [extractLogs, setExtractLogs] = useState([])
   const [selectedChapters, setSelectedChapters] = useState(new Set())
   const [error, setError] = useState(null)
+  const [existingBooks, setExistingBooks] = useState([])
   const inputRef = useRef()
+
+  useEffect(() => {
+    fetch('/api/pipeline/books')
+      .then(r => r.json())
+      .then(setExistingBooks)
+      .catch(() => {})
+  }, [])
+
+  function loadExisting(book) {
+    setError(null)
+    setExtractLogs([])
+    setSelectedChapters(new Set())
+    setExtractResult(book)
+    setPhase('ready')
+  }
 
   async function handleFile(file) {
     if (!file || !file.name.toLowerCase().endsWith('.pdf')) {
@@ -114,6 +130,33 @@ export default function IngestPage() {
       <div className="max-w-2xl mx-auto px-6 py-10">
         <h1 className="text-slate-100 text-lg font-semibold mb-1">Ingest PDF</h1>
         <p className="text-slate-500 text-sm mb-8">Drop a textbook PDF to extract chapters and queue them for note generation.</p>
+
+        {/* Existing books */}
+        {phase === 'idle' && existingBooks.length > 0 && (
+          <div className="mb-6">
+            <p className="text-slate-500 text-xs uppercase tracking-wider mb-2">Previously extracted</p>
+            <div className="space-y-2">
+              {existingBooks.map(book => (
+                <button
+                  key={book.bookSlug}
+                  onClick={() => loadExisting(book)}
+                  className="w-full text-left rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900/40 hover:bg-slate-900/70 px-4 py-3 flex items-center justify-between transition-colors"
+                >
+                  <div>
+                    <p className="text-slate-200 text-sm font-medium">{book.bookTitle}</p>
+                    <p className="text-slate-600 text-xs mt-0.5">{book.totalPages} pages · {book.chapters.length} chapters</p>
+                  </div>
+                  <span className="text-indigo-400 text-xs shrink-0 ml-4">Load →</span>
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-px bg-slate-800" />
+              <span className="text-slate-700 text-xs">or upload new</span>
+              <div className="flex-1 h-px bg-slate-800" />
+            </div>
+          </div>
+        )}
 
         {/* Drop zone */}
         {(phase === 'idle' || phase === 'uploading') && (

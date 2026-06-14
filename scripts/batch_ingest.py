@@ -24,6 +24,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -73,7 +74,7 @@ One sentence. No jargon. No symbols. What is this thing, simply?
 
 ## Intuition
 
-A concrete analogy or real-world visual — NOT a restatement of the definition. Something you can picture in 5 seconds.
+Two sentences maximum. A concrete analogy or real-world visual — NOT a restatement of the definition. Something you can picture in 5 seconds.
 
 ## Formal Definition
 
@@ -92,7 +93,7 @@ $$\\text{Result: ...}$$
 
 ## Key Properties
 
-Essential rules only. Maximum 5. Only the ones worth remembering.
+Essential rules only. Maximum 3. Only the ones worth remembering.
 
 ## Why It Works
 
@@ -103,20 +104,7 @@ Essential rules only. Maximum 5. Only the ones worth remembering.
 > **→ [Domain Name]:** One sentence naming the exact mechanism connecting this concept to that domain.
 > *Why it matters:* One sentence on the practical payoff.
 
-Maximum 3 bridges. Each bridge must name a specific mechanism, not a vague link.
-
-## Where It Appears
-
-- Domain — specific use case
-- Domain — specific use case
-
-Maximum 5 bullets.
-
-## Common Confusions
-
-> ⚠ You might think **X** — but actually **Y** because **Z**.
-
-Maximum 2.
+Maximum 2 bridges. Each bridge must name a specific mechanism, not a vague link.
 
 ## Guru's Note
 
@@ -129,9 +117,9 @@ One sentence written as advice from a senior student. Conversational, no jargon.
 | Section | Passes if | Fails if |
 |---|---|---|
 | Plain English | No symbols, no jargon, genuinely one sentence | Contains a math symbol or domain term |
-| Intuition | A different angle from the definition — visual or physical | Restates the definition in simpler words |
+| Intuition | A different angle from the definition — visual or physical; max 2 sentences | Restates the definition in simpler words, or exceeds 2 sentences |
 | Worked Example | Has actual numbers and shows every step | Is abstract or uses variables |
-| Bridge | Names a specific mechanism linking two domains | Says "this concept is used in X" without explaining how |
+| Bridge | Names a specific mechanism linking two domains; max 2 entries | Says "this concept is used in X" without explaining how, or lists more than 2 |
 | Guru's Note | Exactly one sentence | More than one sentence |
 
 ## LaTeX rules — strictly enforced
@@ -268,8 +256,18 @@ def get_bridge_candidates(query, top_n=15):
 # Prompt construction
 # ---------------------------------------------------------------------------
 
-def build_session_context(domains, concepts, book_title, chapter_num, chapter_title):
+def build_session_context(domains, concepts, book_title, chapter_num, chapter_title,
+                          chapter_domain=None, chapter_parent_domain=None):
     """Stable session context — cached at breakpoint 2."""
+    if chapter_domain is not None or chapter_parent_domain is not None:
+        filtered_concepts = {
+            title: meta for title, meta in concepts.items()
+            if meta.get("parent-domain") == chapter_parent_domain
+            or meta.get("domain") == chapter_domain
+        }
+    else:
+        filtered_concepts = concepts
+
     lines = [
         f"## Session context",
         f"",
@@ -286,10 +284,10 @@ def build_session_context(domains, concepts, book_title, chapter_num, chapter_ti
     else:
         lines.append("- (empty — propose new domains as needed)")
 
-    lines += ["", f"### Existing vault concepts ({len(concepts)} concepts)", ""]
+    lines += ["", f"### Existing vault concepts ({len(filtered_concepts)} concepts)", ""]
 
-    if concepts:
-        for title, meta in sorted(concepts.items()):
+    if filtered_concepts:
+        for title, meta in sorted(filtered_concepts.items()):
             summary = meta.get("summary", "")
             domain = meta.get("domain", "")
             lines.append(f"- {title} [{domain}]: {summary}")
@@ -320,11 +318,17 @@ def build_chunk_prompt(chunk, session_notes, bridge_candidates, source_str, conc
     lines += ["### Chapter text", "", chunk["text"], ""]
 
     if session_notes:
+        notes_to_show = session_notes
+        if len(session_notes) > 15:
+            with_bridges = [n for n in session_notes if n.get("bridges")]
+            without_bridges = [n for n in session_notes if not n.get("bridges")]
+            remaining = max(0, 15 - len(with_bridges))
+            notes_to_show = with_bridges + (without_bridges[-remaining:] if remaining else [])
         lines += [
             "### Notes generated earlier in this chapter (available for wikilinks)",
             "",
         ]
-        for n in session_notes:
+        for n in notes_to_show:
             bridges_str = (", ".join(n.get("bridges", []))) if n.get("bridges") else ""
             bridge_note = f" — bridges: {bridges_str}" if bridges_str else ""
             lines.append(f"- [[{n['title']}]] [{n['domain']}]: {n['summary']}{bridge_note}")
@@ -422,8 +426,25 @@ def get_api_reset_time(err):
         return None
 
 
+def _find_claude():
+    """Locate the claude binary across common install paths."""
+    search_path = ":".join(filter(None, [
+        os.path.expanduser("~/.local/bin"),
+        os.path.expanduser("~/.claude/local"),
+        os.path.expanduser("~/.npm/bin"),
+        "/usr/local/bin",
+        "/opt/homebrew/bin",
+        os.environ.get("PATH", ""),
+    ]))
+    return shutil.which("claude", path=search_path)
+
+
 def call_claude_code_cli(system_text, session_context, chunk_prompt):
     """Call Claude via Claude Code CLI using Pro plan auth. No prompt caching."""
+    claude_bin = _find_claude()
+    if not claude_bin:
+        raise FileNotFoundError("claude CLI not found — install via: npm install -g @anthropic-ai/claude-code")
+
     combined = "\n\n".join([
         "SYSTEM INSTRUCTIONS:\n" + system_text,
         session_context,
@@ -431,13 +452,15 @@ def call_claude_code_cli(system_text, session_context, chunk_prompt):
     ])
     try:
         result = subprocess.run(
-            ["claude", "-p", combined, "--output-format", "json"],
+            [claude_bin, "-p", combined, "--output-format", "json"],
+            stdin=subprocess.DEVNULL,   # prevent 3s stdin wait / TTY warning
             capture_output=True,
             text=True,
             timeout=300,
+            env={**os.environ, "HOME": os.path.expanduser("~")},
         )
     except FileNotFoundError:
-        raise FileNotFoundError("claude CLI not found")
+        raise FileNotFoundError(f"claude CLI not found at {claude_bin}")
     except subprocess.TimeoutExpired:
         raise RuntimeError("claude CLI timed out after 5 minutes")
 
@@ -447,7 +470,8 @@ def call_claude_code_cli(system_text, session_context, chunk_prompt):
         raise ClaudeCodeRateLimitError()
 
     if result.returncode != 0:
-        raise RuntimeError(result.stderr[:300] or result.stdout[:300])
+        err_detail = (result.stderr + result.stdout).strip()[:500]
+        raise RuntimeError(err_detail or f"claude CLI exited {result.returncode}")
 
     try:
         data = json.loads(result.stdout)
@@ -619,6 +643,8 @@ def main():
     p.add_argument("--model", default=DEFAULT_MODEL, help=f"Claude model (default: {DEFAULT_MODEL})")
     p.add_argument("--max-tokens", type=int, default=DEFAULT_MAX_TOKENS, help=f"Max tokens per response (default: {DEFAULT_MAX_TOKENS})")
     p.add_argument("--thinking", action="store_true", help="Enable adaptive thinking (adds reasoning depth, increases cost)")
+    p.add_argument("--chapter-domain", default=None, help="Domain for this chapter (e.g. 'linear algebra') — filters vault concepts shown in context")
+    p.add_argument("--parent-domain", default=None, help="Parent domain for this chapter (e.g. 'mathematics') — filters vault concepts shown in context")
     args = p.parse_args()
 
     cfg = load_config()
@@ -705,7 +731,11 @@ def main():
 
     client = anthropic.Anthropic()
     source_str = f"{book_title}, Chapter {args.chapter}: {chapter_title}"
-    session_context = build_session_context(domains, concepts, book_title, args.chapter, chapter_title)
+    session_context = build_session_context(
+        domains, concepts, book_title, args.chapter, chapter_title,
+        chapter_domain=args.chapter_domain,
+        chapter_parent_domain=args.parent_domain,
+    )
 
     all_written = []
 
@@ -720,7 +750,7 @@ def main():
 
         # Bridge candidates for this chunk's content
         query = f"{section} {chunk['text'][:300]}"
-        bridge_cands = get_bridge_candidates(query, top_n=15)
+        bridge_cands = get_bridge_candidates(query, top_n=8)
         if bridge_cands:
             print(f"  [ingest] Bridge candidates: {len(bridge_cands)} found")
 

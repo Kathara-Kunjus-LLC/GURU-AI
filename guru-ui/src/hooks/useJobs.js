@@ -63,5 +63,17 @@ export function useJobs() {
     return job
   }
 
-  return { jobs, loading, createJob, refresh: fetchJobs }
+  async function deleteJob(id) {
+    const res = await fetch(`/api/jobs/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to delete job')
+    setJobs(prev => prev.filter(j => j.id !== id))
+  }
+
+  async function clearJobs() {
+    const res = await fetch('/api/jobs', { method: 'DELETE' })
+    if (!res.ok) throw new Error('Failed to clear jobs')
+    await fetchJobs()
+  }
+
+  return { jobs, loading, createJob, deleteJob, clearJobs, refresh: fetchJobs }
 }

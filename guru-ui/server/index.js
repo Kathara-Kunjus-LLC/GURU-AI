@@ -383,6 +383,29 @@ app.post('/api/pipeline/extract', async (req, res) => {
   }
 })
 
+app.get('/api/pipeline/books', (req, res) => {
+  if (!pdfsPath) return res.json([])
+  const cacheDir = path.join(pdfsPath, 'cache')
+  if (!fs.existsSync(cacheDir)) return res.json([])
+  const books = []
+  for (const slug of fs.readdirSync(cacheDir)) {
+    const metaPath = path.join(cacheDir, slug, 'meta.json')
+    if (!fs.existsSync(metaPath)) continue
+    try {
+      const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'))
+      const chapters = Object.entries(meta.chapters).map(([num, ch]) => ({
+        number: parseInt(num),
+        title: ch.title,
+        estimatedTokens: ch.estimated_tokens,
+        startPage: ch.start_page,
+        endPage: ch.end_page,
+      })).sort((a, b) => a.number - b.number)
+      books.push({ bookSlug: slug, bookTitle: meta.title, author: meta.author, totalPages: meta.total_pages, chapters })
+    } catch {}
+  }
+  res.json(books)
+})
+
 // ---------------------------------------------------------------------------
 // Job routes
 // ---------------------------------------------------------------------------
@@ -409,6 +432,18 @@ app.post('/api/jobs/:id/resume', (req, res) => {
   const job = jobs.requeueJob(req.params.id)
   if (!job) return res.status(400).json({ error: 'Job not found or not resumable' })
   res.json(jobs.getJobWithLogs(req.params.id))
+})
+
+app.delete('/api/jobs/:id', (req, res) => {
+  const ok = jobs.deleteJob(req.params.id)
+  if (!ok) return res.status(400).json({ error: 'Job not found or currently running' })
+  res.json({ ok: true })
+})
+
+app.delete('/api/jobs', (req, res) => {
+  const { filter = 'inactive' } = req.query
+  const count = jobs.clearJobs(filter)
+  res.json({ deleted: count })
 })
 
 app.get('/api/jobs/:id/stream', (req, res) => {
