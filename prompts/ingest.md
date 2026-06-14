@@ -137,7 +137,7 @@ For abstract concepts, use the simplest possible concrete case.
 
 ## Key Properties
 
-Essential rules only. Maximum 5. Only the ones worth remembering.
+Essential rules only. Maximum 3. Only the ones worth remembering.
 
 $$\text{Property 1}$$
 
@@ -145,7 +145,7 @@ $$\text{Property 2}$$
 
 ## Why It Works
 
-2–4 sentences explaining the core reasoning. Enough to make the formula feel inevitable, not arbitrary. No full proof — just the insight that makes it click. Use LaTeX where helpful.
+2–3 sentences explaining the core reasoning. Enough to make the formula feel inevitable, not arbitrary. No full proof — just the insight that makes it click. Use LaTeX where helpful.
 
 ## Bridge to Other Domains
 
@@ -155,23 +155,13 @@ $$\text{Property 2}$$
 > **→ [Domain Name]:** ...
 > *Why it matters:* ...
 
-Maximum 3 bridges. Each bridge must name a **specific mechanism**, not a vague link. If a bridge references a related note already in the vault, name that note explicitly.
-
-## Where It Appears
-
-- Domain — specific use case
-- Domain — specific use case
-- Domain — specific use case
-
-Maximum 5 bullets. One line each.
+Maximum 2 bridges. Each bridge must name a **specific mechanism**, not a vague link. If a bridge references a related note already in the vault, name that note explicitly. This section also covers where the concept appears in other fields — there is no separate "Where It Appears" list.
 
 ## Common Confusions
 
-> ⚠ You might think **X** — but actually **Y** because **Z**.
+Optional — include only if there is a genuine trap a learner falls into. Maximum 1:
 
 > ⚠ You might think **X** — but actually **Y** because **Z**.
-
-Maximum 2.
 
 ## Guru's Note
 

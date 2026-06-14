@@ -24,6 +24,12 @@ import sys
 # ~500 tokens of previous section appended as sliding-window context
 WINDOW_CONTEXT_CHARS = 2000
 
+# Coalesce adjacent split-by-section chunks up to this size. Fewer chunks means
+# fewer ingest calls, each of which re-pays the (uncached) system-prompt +
+# session-context overhead on the Pro-plan CLI path. Kept under the 15k
+# single-call ceiling so merged chunks stay comfortably processable.
+TARGET_CHUNK_TOKENS = 12_000
+
 
 def load_config():
     path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "config.json"))
@@ -139,6 +145,38 @@ def _split_into_chunks(text, bounds, chapter_title, sliding_window):
     return chunks
 
 
+def _merge_chunks(chunks, target_tokens=TARGET_CHUNK_TOKENS):
+    """Coalesce consecutive section chunks while the combined size stays under
+    target_tokens. Reduces the number of ingest calls without exceeding the
+    single-call size ceiling. Only used for the split-by-section strategy."""
+    if len(chunks) <= 1:
+        return chunks
+
+    merged = []
+    cur = None
+    for c in chunks:
+        if cur is None:
+            cur = dict(c)
+            continue
+        if cur["estimated_tokens"] + c["estimated_tokens"] <= target_tokens:
+            cur["text"] = cur["text"] + "\n\n" + c["text"]
+            cur["estimated_tokens"] += c["estimated_tokens"]
+            if c["section_title"] not in cur["section_title"]:
+                cur["section_title"] = (cur["section_title"] + " + " + c["section_title"])[:120]
+        else:
+            merged.append(cur)
+            cur = dict(c)
+    if cur is not None:
+        merged.append(cur)
+
+    total = len(merged)
+    for i, c in enumerate(merged):
+        c["chunk_index"] = i
+        c["total_chunks"] = total
+        c["window_context"] = None
+    return merged
+
+
 def main():
     p = argparse.ArgumentParser(description="Chunk extracted chapter text for Guru ingestion.")
     p.add_argument("book_slug", help="Book slug (e.g. applied-linear-algebra)")
@@ -210,6 +248,11 @@ def main():
         strategy = "sliding-window" if sliding else "split-by-section"
         print(f"[chunk] Strategy: {strategy}")
         chunks = _split_into_chunks(text, bounds, chapter_title, sliding_window=sliding)
+        if strategy == "split-by-section":
+            before = len(chunks)
+            chunks = _merge_chunks(chunks)
+            if len(chunks) < before:
+                print(f"[chunk] Merged {before} sections into {len(chunks)} chunks (target {TARGET_CHUNK_TOKENS:,} tok/chunk)")
 
     for c in chunks:
         path = os.path.join(out_dir, f"chunk_{c['chunk_index']:03d}.json")
