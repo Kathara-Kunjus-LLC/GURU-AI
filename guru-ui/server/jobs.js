@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const CHUNK_PROGRESS = /\[ingest\] Chunk (\d+)\/(\d+)/
-const SUMMARY_START = /=== batch_ingest\.py summary ===/
+const SUMMARY_START = /=== .+? summary ===/
 const TOKEN_PATTERNS = {
   inputTokens: /Input:\s+([\d,]+)/,
   outputTokens: /Output:\s+([\d,]+)/,
@@ -242,7 +242,9 @@ function updateJob(id, fields) {
 
 function spawnScript(id, cmd, args, cwd) {
   return new Promise(resolve => {
-    const proc = spawn(cmd, args, { cwd })
+    // PYTHONUNBUFFERED forces line-by-line stdout so chunk progress streams to
+    // the UI live instead of arriving in one block when the process exits.
+    const proc = spawn(cmd, args, { cwd, env: { ...process.env, PYTHONUNBUFFERED: '1' } })
     let inSummary = false
     const summaryLines = []
 
@@ -288,12 +290,12 @@ function spawnScript(id, cmd, args, cwd) {
         const bridgeLines = block.match(/  - .+ — .+/g) || []
         summary.bridges = bridgeLines.map(l => l.replace(/^  - /, '').split(' — ')[0])
       }
-      resolve({ code, summary })
+      resolve({ code, summary, summaryText: summaryLines.join('\n') })
     })
 
     proc.on('error', err => {
       appendLog(id, `[runner] Process error: ${err.message}`, 'error')
-      resolve({ code: 1, summary: null })
+      resolve({ code: 1, summary: null, summaryText: '' })
     })
   })
 }
@@ -319,7 +321,7 @@ async function runNext() {
 
   // Step 1: chunk.py
   updateJob(id, { currentStep: 'chunk' })
-  appendLog(id, '[runner] Step 1/2: chunking text...')
+  appendLog(id, '[runner] Step 1/3: chunking text...')
   const { code: chunkCode } = await spawnScript(
     id,
     pythonCmd,
@@ -340,7 +342,7 @@ async function runNext() {
 
   // Step 2: batch_ingest.py
   updateJob(id, { currentStep: 'process' })
-  appendLog(id, '[runner] Step 2/2: ingesting with Claude API...')
+  appendLog(id, '[runner] Step 2/3: ingesting with Claude...')
 
   const chapterDomainArgs = []
   try {
@@ -393,11 +395,38 @@ async function runNext() {
       error: 'batch_ingest.py failed — check logs',
     })
   } else {
+    // Step 3: review.py — deterministic lint. Never fails the job; flagged
+    // notes are surfaced for the user to handle in the approve UI.
+    updateJob(id, { currentStep: 'review' })
+    appendLog(id, '[runner] Step 3/3: linting staged notes...')
+    const chapterLabel = `ch${String(job.chapter).padStart(2, '0')}`
+    const { code: reviewCode, summaryText: reviewText } = await spawnScript(
+      id,
+      pythonCmd,
+      [path.join(scriptsDir, 'review.py'), chapterLabel],
+      cwd
+    )
+
+    let review = null
+    if (reviewText) {
+      const grab = re => { const m = reviewText.match(re); return m ? parseInt(m[1]) : null }
+      review = {
+        reviewed: grab(/Notes reviewed:\s+(\d+)/),
+        autoApproved: grab(/Auto-approved:\s+(\d+)/),
+        flagged: grab(/Flagged:\s+(\d+)/),
+      }
+    }
+    if (reviewCode !== 0) {
+      appendLog(id, '[runner] review.py did not complete cleanly — skipping lint summary.', 'warn')
+    } else if (review && review.flagged != null) {
+      appendLog(id, `[runner] Lint: ${review.autoApproved}/${review.reviewed} auto-approved, ${review.flagged} flagged for review.`)
+    }
+
     updateJob(id, {
       status: 'completed',
       currentStep: null,
       completedAt: new Date().toISOString(),
-      summary,
+      summary: { ...(summary || {}), review },
     })
     appendLog(id, '[runner] Job completed successfully.')
   }

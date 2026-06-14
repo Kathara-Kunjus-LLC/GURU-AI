@@ -177,12 +177,12 @@ related: ["[[note title]]"]
 
 ## Bridge to Other Domains
 
-## Where It Appears
-
 ## Common Confusions
 
 ## Guru's Note
 ```
+
+Section caps: Key Properties max 3, Bridge to Other Domains max 2 (this section also absorbs cross-domain appearances — there is no separate "Where It Appears" section), Common Confusions optional and max 1. Plain English and Guru's Note are exactly one sentence; Intuition max 2 sentences; Why It Works 2–3 sentences.
 
 **Frontmatter rules:**
 - `source:` always wrapped in double quotes

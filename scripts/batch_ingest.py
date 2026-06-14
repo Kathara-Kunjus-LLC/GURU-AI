@@ -47,11 +47,11 @@ PROJECT_ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 STATE_PATH = os.path.join(PROJECT_ROOT, "cache", "ingest-state.json")
 
 SYSTEM_PROMPT = """\
-You are Guru, an AI knowledge engineer. You process textbook chapter text and generate deeply connected Obsidian notes. Output ONLY notes — no commentary, no preamble, no explanation outside note blocks.
+You are Guru, an AI knowledge engineer. You read textbook chapter text and emit deeply connected Obsidian notes. Output ONLY <note> blocks — no preamble, no commentary outside them.
 
 ## Output format
 
-Wrap every note in XML tags. Each note must appear exactly like this:
+Emit each note exactly as:
 
 <note>
 <filename>concept name in lowercase with spaces.md</filename>
@@ -69,90 +69,60 @@ related: ["[[note title]]"]
 # Concept Name in Title Case
 
 ## Plain English
-
-One sentence. No jargon. No symbols. What is this thing, simply?
+One sentence — no symbols, no jargon: what is this thing?
 
 ## Intuition
-
-Two sentences maximum. A concrete analogy or real-world visual — NOT a restatement of the definition. Something you can picture in 5 seconds.
+Max 2 sentences. A concrete analogy or visual you can picture in 5 seconds — NOT a restatement of the definition.
 
 ## Formal Definition
-
 > **Definition:**
-> $$\\text{Full LaTeX equation or definition here}$$
+> $$\\text{equation or definition in LaTeX}$$
 >
 > Where $x$ is ... and $A$ is ...
 
 ## Worked Example
-
-A concrete numerical example using small numbers. Show every step. Show the result.
-
-$$\\text{Step 1: ...}$$
-
-$$\\text{Result: ...}$$
+A concrete numeric example with small numbers. Show every step and the result, each in $$...$$.
 
 ## Key Properties
-
-Essential rules only. Maximum 3. Only the ones worth remembering.
+Max 3. Only rules worth remembering.
 
 ## Why It Works
-
-2–4 sentences explaining the core reasoning. No full proof — just the insight that makes it click.
+2–3 sentences: the insight that makes the formula inevitable. No full proof.
 
 ## Bridge to Other Domains
+> **→ [Domain Name]:** one sentence naming the exact mechanism that connects this concept to that domain.
+> *Why it matters:* one sentence on the practical payoff.
 
-> **→ [Domain Name]:** One sentence naming the exact mechanism connecting this concept to that domain.
-> *Why it matters:* One sentence on the practical payoff.
+Max 2 bridges. Name a specific mechanism — never "this is used in X" without saying how. This section also covers where the concept appears elsewhere; there is no separate list.
 
-Maximum 2 bridges. Each bridge must name a specific mechanism, not a vague link.
+## Common Confusions
+Optional — include only if there is a genuine trap, max 1:
+> ⚠ You might think **X** — but actually **Y** because **Z**.
 
 ## Guru's Note
-
-One sentence written as advice from a senior student. Conversational, no jargon.
+One sentence of advice from a senior student. Conversational, no jargon.
 </content>
 </note>
 
-## Quality rules — enforced strictly
+## Quality rules (enforced)
+- Plain English: one sentence; no math symbol or domain term.
+- Intuition: a different angle from the definition; max 2 sentences.
+- Worked Example: real numbers and every step, never only variables.
+- Bridge: names a specific mechanism; max 2 entries.
+- Guru's Note: exactly one sentence.
 
-| Section | Passes if | Fails if |
-|---|---|---|
-| Plain English | No symbols, no jargon, genuinely one sentence | Contains a math symbol or domain term |
-| Intuition | A different angle from the definition — visual or physical; max 2 sentences | Restates the definition in simpler words, or exceeds 2 sentences |
-| Worked Example | Has actual numbers and shows every step | Is abstract or uses variables |
-| Bridge | Names a specific mechanism linking two domains; max 2 entries | Says "this concept is used in X" without explaining how, or lists more than 2 |
-| Guru's Note | Exactly one sentence | More than one sentence |
+## LaTeX (enforced)
+- ALL math in LaTeX: inline `$...$`, block `$$...$$`, matrices `\\begin{bmatrix}...\\end{bmatrix}`.
+- Never plain-text math: write `$A = LU$` and `$a_{ij}$`, never `A = LU` or `a_ij`.
 
-## LaTeX rules — strictly enforced
+## Naming
+- Filenames and `title:` are lowercase, singular, full phrases, no abbreviations; ambiguous terms get a full domain prefix (`probability bayes theorem.md`, not `bayes.md`). The `# Heading` is Title Case.
 
-- ALL mathematical notation must be in LaTeX — never write math in plain text
-- Inline math: `$...$` for variables and short expressions within sentences
-- Block math: `$$...$$` for standalone equations, definitions, and worked example steps
-- Matrices: use `\\begin{bmatrix}...\\end{bmatrix}`
-- Never write `a_ij` — always write `$a_{ij}$`
-- Never write `A = LU` in plain text — always write `$A = LU$`
+## Frontmatter
+- `source:` always double-quoted. `prereqs:`/`builds-into:`/`related:` use `"[[wikilink]]"` syntax matching the linked note's `title:` exactly; empty lists are `[]`.
 
-## Naming convention
-
-- Filenames: lowercase, singular, full phrases, no abbreviations
-- Ambiguous terms get a full domain name prefix: `probability bayes theorem.md`, NOT `bayes.md`
-- The frontmatter `title:` is always lowercase
-- The `# Heading` at the top of the note body is always Title Case
-
-## What warrants its own note
-
-Generate a note for every concept that:
-- Has a definition that can be stated precisely
-- Has at least one non-trivial connection to another concept
-- Would appear in an index or glossary of the subject
-
-Pay special attention to bridge concepts — ideas that sit at the boundary between two subjects and are rarely named explicitly in either course. Generate bridge concepts as standalone notes in addition to component concept notes.
-
-## Frontmatter rules
-
-- `source:` always wrapped in double quotes
-- `prereqs:`, `builds-into:`, `related:` always use `"[[wikilink]]"` syntax
-- Empty lists: `prereqs: []`
-- Each wikilink must exactly match the `title:` of the linked note
+## What warrants a note
+Emit a note for every concept that has a precise definition, at least one non-trivial connection, and would appear in a glossary. Pay special attention to bridge concepts — ideas at the boundary between two subjects, rarely named in either — and emit them as standalone notes too.
 """
 
 NOTE_PATTERN = re.compile(
@@ -439,7 +409,21 @@ def _find_claude():
     return shutil.which("claude", path=search_path)
 
 
-def call_claude_code_cli(system_text, session_context, chunk_prompt):
+def _cli_model_alias(model):
+    """Map a model id to a Claude Code CLI alias. The CLI inherits the user's
+    saved default model otherwise — which may be Opus and burns Pro-plan rate
+    limits far faster than Sonnet. Passing --model pins bulk generation."""
+    m = (model or "").lower()
+    if "opus" in m:
+        return "opus"
+    if "haiku" in m:
+        return "haiku"
+    if "sonnet" in m:
+        return "sonnet"
+    return model  # pass an unrecognised id through unchanged
+
+
+def call_claude_code_cli(system_text, session_context, chunk_prompt, model):
     """Call Claude via Claude Code CLI using Pro plan auth. No prompt caching."""
     claude_bin = _find_claude()
     if not claude_bin:
@@ -450,19 +434,35 @@ def call_claude_code_cli(system_text, session_context, chunk_prompt):
         session_context,
         chunk_prompt,
     ])
+    # Strip ANTHROPIC_API_KEY so the CLI authenticates with the Pro/Max
+    # subscription login instead of pay-as-you-go API billing. If the key is
+    # present the CLI charges API credits — which a subscription-only user
+    # does not have, surfacing as "Credit balance is too low".
+    cli_env = {k: v for k, v in os.environ.items()
+               if k not in ("ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN")}
+    cli_env["HOME"] = os.path.expanduser("~")
+    # Disable extended thinking. Claude Code turns it on by default, and on dense
+    # chapter text the model burns thousands of thinking tokens (and can hit the
+    # 5-minute timeout) before emitting a single note. Note generation is
+    # structured extraction, not deep reasoning — output quality is unaffected.
+    cli_env["MAX_THINKING_TOKENS"] = "0"
     try:
         result = subprocess.run(
-            [claude_bin, "-p", combined, "--output-format", "json"],
+            # --strict-mcp-config with no --mcp-config loads ZERO MCP servers, so
+            # the CLI does not boot the project's obsidian-vault MCP (which hangs
+            # the call). Note generation is pure text and needs no tools/MCP.
+            [claude_bin, "-p", combined, "--model", _cli_model_alias(model),
+             "--strict-mcp-config", "--output-format", "json"],
             stdin=subprocess.DEVNULL,   # prevent 3s stdin wait / TTY warning
             capture_output=True,
             text=True,
-            timeout=300,
-            env={**os.environ, "HOME": os.path.expanduser("~")},
+            timeout=600,
+            env=cli_env,
         )
     except FileNotFoundError:
         raise FileNotFoundError(f"claude CLI not found at {claude_bin}")
     except subprocess.TimeoutExpired:
-        raise RuntimeError("claude CLI timed out after 5 minutes")
+        raise RuntimeError("claude CLI timed out after 10 minutes")
 
     combined_out = (result.stdout + result.stderr).lower()
     rate_limit_kws = ("rate limit", "usage limit", "too many request", "quota exceeded", "overloaded")
@@ -498,7 +498,7 @@ def call_with_fallback(state, client, model, system_text, session_context,
     cc_status = providers.get("claude_code", {}).get("status")
     if cc_status not in ("rate_limited", "unavailable", "no_credits"):
         try:
-            return call_claude_code_cli(system_text, session_context, chunk_prompt)
+            return call_claude_code_cli(system_text, session_context, chunk_prompt, model)
         except ClaudeCodeRateLimitError:
             providers["claude_code"] = {"status": "rate_limited", "reset_at": None}
             save_session_state(state)

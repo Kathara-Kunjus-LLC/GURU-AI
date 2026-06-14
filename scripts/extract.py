@@ -12,6 +12,7 @@ Reads pdfs_path from config.json. Outputs to pdfs/cache/{book_slug}/:
 """
 
 import argparse
+import collections
 import json
 import os
 import re
@@ -111,7 +112,11 @@ def fallback_chapter_list(total_pages):
 def extract_chapter_text(doc, start_page, end_page):
     """
     Extract plain text from pages [start_page, end_page] (1-indexed, inclusive).
-    Returns (text, scanned_page_count).
+    Returns (raw_text, cleaned_text, scanned_page_count).
+
+    Cleaning removes content that never yields concept notes but costs tokens on
+    every ingest call: repeated running headers/footers, bare page numbers,
+    line-wrap hyphenation, and a trailing References/Bibliography block.
     """
     pages = []
     scanned = 0
@@ -121,7 +126,64 @@ def extract_chapter_text(doc, start_page, end_page):
         if len(text.strip()) < 100:
             scanned += 1
         pages.append(text)
-    return "\n".join(pages), scanned
+
+    raw_text = "\n".join(pages)
+    repeated = detect_repeated_lines(pages)
+    cleaned_text = clean_pages(pages, repeated)
+    cleaned_text = strip_trailing_apparatus(cleaned_text)
+    return raw_text, cleaned_text, scanned
+
+
+def detect_repeated_lines(pages, min_fraction=0.4, max_len=80):
+    """Find short lines recurring as the first/last non-empty line across many
+    pages — i.e. running heads/feet that repeat on nearly every page."""
+    counter = collections.Counter()
+    counted_pages = 0
+    for text in pages:
+        lines = [l.strip() for l in text.splitlines() if l.strip()]
+        if not lines:
+            continue
+        counted_pages += 1
+        # Header/footer candidates: top two and bottom two non-empty lines
+        for line in lines[:2] + lines[-2:]:
+            if len(line) <= max_len:
+                counter[line] += 1
+    if counted_pages == 0:
+        return set()
+    threshold = max(3, int(counted_pages * min_fraction))
+    return {line for line, c in counter.items() if c >= threshold}
+
+
+def clean_pages(pages, repeated):
+    """Join pages, dropping repeated headers/footers and bare page numbers,
+    then de-hyphenate line-wrapped words and collapse blank runs."""
+    kept = []
+    for text in pages:
+        for line in text.splitlines():
+            stripped = line.strip()
+            if stripped in repeated:
+                continue
+            if re.fullmatch(r"\d{1,4}", stripped):  # bare page number
+                continue
+            kept.append(line)
+    text = "\n".join(kept)
+    text = re.sub(r"(\w+)-\n(\w+)", r"\1\2", text)   # de-hyphenate wraps
+    text = re.sub(r"\n{3,}", "\n\n", text)            # collapse blank runs
+    return text.strip()
+
+
+def strip_trailing_apparatus(text):
+    """Cut a trailing References/Bibliography/Works Cited block. Only removes it
+    when it sits in the last third of the chapter, to avoid false positives on
+    an early mention of the word."""
+    pattern = re.compile(r"\n[ \t]*(references|bibliography|works cited)[ \t]*\n",
+                         re.IGNORECASE)
+    matches = list(pattern.finditer(text))
+    if matches:
+        last = matches[-1]
+        if last.start() > len(text) * 0.66:
+            return text[:last.start()].rstrip()
+    return text
 
 
 def estimate_tokens(text):
@@ -186,11 +248,13 @@ def main():
 
     # Extract text per chapter
     total_scanned = 0
+    total_raw_tokens = 0
+    total_clean_tokens = 0
     chapter_meta = {}
 
     for ch in chapters:
         n = ch["number"]
-        text, scanned = extract_chapter_text(doc, ch["start_page"], ch["end_page"])
+        raw_text, text, scanned = extract_chapter_text(doc, ch["start_page"], ch["end_page"])
         total_scanned += scanned
 
         if scanned > 0:
@@ -201,14 +265,20 @@ def main():
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(text)
 
+        raw_tokens = estimate_tokens(raw_text)
         tokens = estimate_tokens(text)
+        total_raw_tokens += raw_tokens
+        total_clean_tokens += tokens
+        saved = raw_tokens - tokens
+        pct = (saved / raw_tokens * 100) if raw_tokens else 0
+        savings = f"  (−{saved:,} tok, {pct:.0f}% cleaned)" if saved > 0 else ""
         chapter_meta[str(n)] = {
             "title": ch["title"],
             "estimated_tokens": tokens,
             "start_page": ch["start_page"],
             "end_page": ch["end_page"],
         }
-        print(f"[extract] Chapter {n:02d}: {ch['title'][:50]:<50}  ~{tokens:,} tokens")
+        print(f"[extract] Chapter {n:02d}: {ch['title'][:50]:<50}  ~{tokens:,} tokens{savings}")
 
     doc.close()
 
@@ -239,6 +309,10 @@ def main():
     print(f"Slug:     {slug}")
     print(f"Chapters: {len(chapters)}")
     print(f"Output:   {out_dir}")
+    total_saved = total_raw_tokens - total_clean_tokens
+    if total_saved > 0:
+        pct = total_saved / total_raw_tokens * 100
+        print(f"Cleaned:  −{total_saved:,} tokens ({pct:.0f}%) removed as headers/footers/page numbers/refs")
     if total_scanned > 0:
         print(f"[WARN] {total_scanned} page(s) total appeared scanned/image-only — check extraction quality")
         print("       For scanned PDFs, consider running an OCR step before ingestion.")
