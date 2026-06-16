@@ -190,5 +190,467 @@
     "domain": "linear algebra",
     "parent-domain": "mathematics",
     "summary": "A truss is statically determinate if the internal bar forces can be computed directly from force balance alone (without knowing displacements), and statically indeterminate if one must first solve for displacements via the full stiffness system."
+  },
+  "linear algebra 2x2 determinant": {
+    "path": "linear algebra/linear algebra 2x2 determinant.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The determinant of a $2 \\times 2$ matrix is a single number that tells you whether the matrix is invertible and, if so, by how much it scales areas."
+  },
+  "numerical methods thomas algorithm": {
+    "path": "numerical methods/numerical methods thomas algorithm.md",
+    "domain": "numerical methods",
+    "parent-domain": "mathematics",
+    "summary": "The Thomas algorithm is a specialized form of Gaussian Elimination that solves a tridiagonal linear system in $O(n)$ operations by exploiting the fact that only the three central diagonals are nonzero."
+  },
+  "numerical methods strassen matrix multiplication": {
+    "path": "numerical methods/numerical methods strassen matrix multiplication.md",
+    "domain": "numerical methods",
+    "parent-domain": "mathematics",
+    "summary": "An algorithm that multiplies two $n \\times n$ matrices using $n^{\\log_2 7} \\approx n^{2.807}$ multiplications instead of the naive $n^3$, by recursively splitting matrices into four blocks and replacing 8 block-multiplications with 7 cleverly chosen ones."
+  },
+  "linear algebra tridiagonal matrix": {
+    "path": "linear algebra/linear algebra tridiagonal matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix where every entry is zero except possibly those on the main diagonal and the two adjacent diagonals directly above and below it."
+  },
+  "linear algebra vector": {
+    "path": "linear algebra/linear algebra vector.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A vector is a single column (or row) of numbers that represents a point, a direction, or a list of unknowns in one package."
+  },
+  "linear algebra tridiagonal matrix lu factorization": {
+    "path": "linear algebra/linear algebra tridiagonal matrix lu factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The $LU$ factorization of a tridiagonal matrix produces a lower bidiagonal $L$ and an upper bidiagonal $U$, and the entire factorization requires only $O(n)$ operations instead of $O(n^3)$."
+  },
+  "linear algebra triangular matrix inverse": {
+    "path": "linear algebra/linear algebra triangular matrix inverse.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The inverse of a triangular matrix with nonzero diagonal entries is itself triangular of the same type, and the inverse of a unitriangular matrix is again unitriangular."
+  },
+  "linear algebra triangular form": {
+    "path": "linear algebra/linear algebra triangular form.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A linear system is in triangular form when each successive equation involves one fewer unknown than the one above it, so the last equation has only one unknown and the system can be solved from the bottom up."
+  },
+  "linear algebra transpose inverse commutativity": {
+    "path": "linear algebra/linear algebra transpose inverse commutativity.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "For an invertible matrix, the operations of transposing and inverting can be applied in either order and give the same result."
+  },
+  "linear algebra symmetric skew-symmetric decomposition": {
+    "path": "linear algebra/linear algebra symmetric skew-symmetric decomposition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Every square matrix can be split into exactly one symmetric part and one skew-symmetric part that sum back to the original."
+  },
+  "linear algebra symmetric matrix": {
+    "path": "linear algebra/linear algebra symmetric matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix is symmetric if it looks the same after you swap its rows and columns."
+  },
+  "linear algebra augmented matrix": {
+    "path": "linear algebra/linear algebra augmented matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An augmented matrix packs the coefficient matrix and the right-hand side vector of a linear system side by side into one array, so that row operations affect both simultaneously."
+  },
+  "linear algebra back substitution": {
+    "path": "linear algebra/linear algebra back substitution.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The process of solving a triangular system by starting from the last equation (which has one unknown), finding its value, then working upward and substituting known values into each equation above."
+  },
+  "linear algebra banded matrix": {
+    "path": "linear algebra/linear algebra banded matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix where all nonzero entries are confined to a diagonal strip of fixed width $k$ around the main diagonal, with zeros everywhere outside that band."
+  },
+  "linear algebra basic and free variables": {
+    "path": "linear algebra/linear algebra basic and free variables.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "After row-reducing a linear system, variables attached to pivot columns are called basic (their values are forced once you pick everything else), and variables in non-pivot columns are called free (you can set them to anything you like)."
+  },
+  "linear algebra compatibility condition": {
+    "path": "linear algebra/linear algebra compatibility condition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A linear system has at least one solution if and only if no row-reduction step ever produces a zero row on the left side paired with a nonzero entry on the right side — that pairing would demand $0 = c$ for some $c \\neq 0$."
+  },
+  "linear algebra cramer rule": {
+    "path": "linear algebra/linear algebra cramer rule.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Cramer's rule gives a formula for each variable of a nonsingular linear system as a ratio of two determinants."
+  },
+  "linear algebra determinant inverse formula": {
+    "path": "linear algebra/linear algebra determinant inverse formula.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The determinant of an inverse matrix is the reciprocal of the original matrix's determinant."
+  },
+  "linear algebra determinant product formula": {
+    "path": "linear algebra/linear algebra determinant product formula.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The determinant of a product of two square matrices equals the product of their individual determinants."
+  },
+  "linear algebra determinant row operation axioms": {
+    "path": "linear algebra/linear algebra determinant row operation axioms.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Three rules describe exactly how each type of elementary row operation changes the determinant of a matrix."
+  },
+  "linear algebra determinant transpose invariance": {
+    "path": "linear algebra/linear algebra determinant transpose invariance.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Transposing a matrix — flipping it across its diagonal — does not change its determinant."
+  },
+  "linear algebra determinant via gaussian elimination": {
+    "path": "linear algebra/linear algebra determinant via gaussian elimination.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "You compute a matrix's determinant by running Gaussian Elimination and multiplying the pivots together, adjusting the sign for any row swaps made along the way."
+  },
+  "linear algebra determinant": {
+    "path": "linear algebra/linear algebra determinant.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The determinant is a single number attached to any square matrix that tells you whether the matrix is invertible."
+  },
+  "linear algebra diagonal matrix": {
+    "path": "linear algebra/linear algebra diagonal matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A diagonal matrix is a square matrix where every entry off the main diagonal is zero, so only the diagonal entries can be nonzero."
+  },
+  "linear algebra elementary matrix type 3": {
+    "path": "linear algebra/linear algebra elementary matrix type 3.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An elementary matrix of type 3 is the identity matrix with one diagonal entry replaced by a nonzero scalar, and it scales a single row of any matrix it left-multiplies."
+  },
+  "linear algebra elementary matrix": {
+    "path": "linear algebra/linear algebra elementary matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An elementary matrix is the identity matrix with one off-diagonal entry changed; multiplying by it on the left performs the corresponding row operation on any matrix."
+  },
+  "linear algebra equivalent system": {
+    "path": "linear algebra/linear algebra equivalent system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Two linear systems are equivalent when every solution of one is also a solution of the other — they look different on paper but describe exactly the same set of answers."
+  },
+  "linear algebra forward substitution": {
+    "path": "linear algebra/linear algebra forward substitution.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Forward substitution solves a lower triangular system by computing unknowns in order from the first to the last, substituting each found value into subsequent equations."
+  },
+  "linear algebra full pivoting": {
+    "path": "linear algebra/linear algebra full pivoting.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "At each step of Gaussian Elimination, swap both rows and columns to move the absolutely largest entry in the remaining submatrix into the pivot position."
+  },
+  "linear algebra gauss-jordan elimination": {
+    "path": "linear algebra/linear algebra gauss-jordan elimination.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Gauss-Jordan elimination is an algorithm that computes the inverse of a matrix by augmenting it with an identity matrix and row-reducing until the left side becomes the identity, at which point the right side is the inverse."
+  },
+  "linear algebra gaussian elimination operation count": {
+    "path": "linear algebra/linear algebra gaussian elimination operation count.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Counting the exact number of multiplications and additions that Gaussian Elimination needs to reduce an $n \\times n$ matrix to upper triangular form."
+  },
+  "linear algebra gaussian elimination": {
+    "path": "linear algebra/linear algebra gaussian elimination.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A step-by-step procedure that simplifies any system of linear equations into triangular form by repeatedly adding multiples of one equation to another, then reads off the solution by back-substitution."
+  },
+  "linear algebra homogeneous system": {
+    "path": "linear algebra/linear algebra homogeneous system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A homogeneous linear system is one where every right-hand side equals zero, so the question is not whether a solution exists but how many solutions there are beyond the obvious all-zeros answer."
+  },
+  "linear algebra identity matrix": {
+    "path": "linear algebra/linear algebra identity matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The identity matrix is the square matrix that leaves every other matrix unchanged when multiplied by it, playing the role of the number $1$ in matrix arithmetic."
+  },
+  "linear algebra ill-conditioned matrix": {
+    "path": "linear algebra/linear algebra ill-conditioned matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "An ill-conditioned matrix is one that is \"almost singular\" in the sense that tiny changes to the right-hand side or to matrix entries produce enormous changes in the solution."
+  },
+  "linear algebra inverse solution formula": {
+    "path": "linear algebra/linear algebra inverse solution formula.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "When the coefficient matrix of a linear system is invertible, the unique solution can be written as the inverse matrix times the right-hand side vector."
+  },
+  "linear algebra solution existence and uniqueness theorem": {
+    "path": "linear algebra/linear algebra solution existence and uniqueness theorem.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A system of linear equations has either exactly one solution, infinitely many solutions, or no solution at all — no other count is possible."
+  },
+  "linear algebra singular matrix": {
+    "path": "linear algebra/linear algebra singular matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix is singular if Gaussian Elimination with row swaps gets permanently stuck — at some column, both the diagonal entry and every entry below it are zero."
+  },
+  "linear algebra skew-symmetric matrix": {
+    "path": "linear algebra/linear algebra skew-symmetric matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A skew-symmetric matrix is a square matrix that equals the negative of its own transpose, forcing all diagonal entries to be zero."
+  },
+  "linear algebra similar matrices determinant": {
+    "path": "linear algebra/linear algebra similar matrices determinant.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Two matrices that represent the same linear transformation in different bases always have the same determinant."
+  },
+  "linear algebra scalar multiplication": {
+    "path": "linear algebra/linear algebra scalar multiplication.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Scalar multiplication stretches or shrinks every entry of a matrix by the same real number."
+  },
+  "linear algebra sherman morrison woodbury formula": {
+    "path": "linear algebra/linear algebra sherman morrison woodbury formula.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The Sherman-Morrison-Woodbury formula gives an exact closed-form expression for the inverse of a matrix that has been modified by a low-rank update, without recomputing the full inverse from scratch."
+  },
+  "linear algebra row operation": {
+    "path": "linear algebra/linear algebra row operation.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A row operation is an allowed manipulation of a linear system's equations — adding a multiple of one equation to another, swapping two equations, or scaling an equation — that never changes which solutions the system has."
+  },
+  "linear algebra row echelon form": {
+    "path": "linear algebra/linear algebra row echelon form.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A matrix is in row echelon form when it has a staircase structure: each row's first nonzero entry (the pivot) sits strictly to the right of the pivot in the row above, and all rows of zeros sink to the bottom."
+  },
+  "linear algebra regular matrix": {
+    "path": "linear algebra/linear algebra regular matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix is regular if Gaussian elimination can reduce it to upper triangular form without ever encountering a zero on the diagonal."
+  },
+  "linear algebra rectangular lu factorization": {
+    "path": "linear algebra/linear algebra rectangular lu factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The $PA = LU$ factorization generalizes from square nonsingular matrices to any rectangular matrix, where $U$ is now a row echelon matrix rather than a square upper triangular one."
+  },
+  "linear algebra pivoting": {
+    "path": "linear algebra/linear algebra pivoting.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Pivoting is the act of swapping two rows of a matrix during Gaussian Elimination so that a nonzero entry moves into the current diagonal position, allowing elimination to continue."
+  },
+  "linear algebra pivot": {
+    "path": "linear algebra/linear algebra pivot.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A pivot is the leading nonzero entry in the current working row during Gaussian elimination — it is the number you divide by to zero out all entries below it in the same column."
+  },
+  "linear algebra permuted lu decomposition": {
+    "path": "linear algebra/linear algebra permuted lu decomposition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The permuted LU decomposition rewrites any nonsingular matrix as a permutation of its rows times a lower triangular matrix times an upper triangular matrix, extending LU factorization to matrices that require row swaps during elimination."
+  },
+  "linear algebra permutation matrix": {
+    "path": "linear algebra/linear algebra permutation matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A permutation matrix is a rearrangement of the identity matrix's rows that, when multiplied on the left of any matrix, reorders that matrix's rows in the same way."
+  },
+  "linear algebra permutation group matrix correspondence": {
+    "path": "linear algebra/linear algebra permutation group matrix correspondence.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Every rearrangement of a finite ordered list corresponds to exactly one permutation matrix, and composing two rearrangements corresponds to multiplying their matrices — the two structures are the same object in different clothes."
+  },
+  "linear algebra permutation expansion determinant": {
+    "path": "linear algebra/linear algebra permutation expansion determinant.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The determinant can be written as a sum over all ways to choose one entry from each row and each column, each term signed according to whether that selection corresponds to an even or odd rearrangement of the rows."
+  },
+  "linear algebra partial pivoting": {
+    "path": "linear algebra/linear algebra partial pivoting.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "At each step of Gaussian Elimination, swap the current row with whichever row below it has the largest absolute value in the pivot column, before performing the elimination."
+  },
+  "linear algebra nonsingular matrix": {
+    "path": "linear algebra/linear algebra nonsingular matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix is nonsingular if Gaussian Elimination with row swaps can reduce it to upper triangular form with every diagonal entry nonzero."
+  },
+  "linear algebra nonsingular matrix elementary matrix factorization": {
+    "path": "linear algebra/linear algebra nonsingular matrix elementary matrix factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Every invertible matrix can be written as a product of elementary matrices — the ones that perform the basic row operations used in Gaussian elimination."
+  },
+  "linear algebra matrix": {
+    "path": "linear algebra/linear algebra matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A matrix is a rectangular grid of numbers arranged in rows and columns, used to organize and compute with structured data."
+  },
+  "linear algebra matrix transpose": {
+    "path": "linear algebra/linear algebra matrix transpose.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The transpose of a matrix is a new matrix formed by swapping every row with its corresponding column."
+  },
+  "linear algebra matrix trace": {
+    "path": "linear algebra/linear algebra matrix trace.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The trace of a square matrix is the sum of its diagonal entries, a single number that captures a fundamental invariant of the matrix."
+  },
+  "linear algebra matrix similarity": {
+    "path": "linear algebra/linear algebra matrix similarity.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Two matrices are similar if one can be obtained from the other by changing the basis — multiplying by an invertible matrix on one side and its inverse on the other."
+  },
+  "linear algebra matrix multiplication": {
+    "path": "linear algebra/linear algebra matrix multiplication.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Matrix multiplication combines two matrices by taking dot products of every row of the first with every column of the second to produce a new matrix."
+  },
+  "linear algebra matrix rank": {
+    "path": "linear algebra/linear algebra matrix rank.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The rank of a matrix is the number of pivots that appear when you row-reduce it to echelon form — it counts how many independent constraints the matrix actually enforces."
+  },
+  "linear algebra matrix inverse": {
+    "path": "linear algebra/linear algebra matrix inverse.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The inverse of a square matrix is another matrix that, when multiplied with the original on either side, produces the identity matrix."
+  },
+  "linear algebra matrix inverse product rule": {
+    "path": "linear algebra/linear algebra matrix inverse product rule.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The inverse of a product of matrices is the product of their individual inverses, but taken in the reverse order."
+  },
+  "linear algebra matrix inverse uniqueness": {
+    "path": "linear algebra/linear algebra matrix inverse uniqueness.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A square matrix can have at most one inverse — there is never a choice between two different inverses."
+  },
+  "linear algebra matrix inverse inefficiency": {
+    "path": "linear algebra/linear algebra matrix inverse inefficiency.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Computing the matrix inverse $A^{-1}$ to solve $Ax = b$ requires roughly three times as many arithmetic operations as simply using Gaussian Elimination with Back Substitution."
+  },
+  "linear algebra matrix form of linear system": {
+    "path": "linear algebra/linear algebra matrix form of linear system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The matrix form $A\\mathbf{x} = \\mathbf{b}$ rewrites an entire system of linear equations as a single equation between two vectors, compressing all the equations and all the coefficients into three symbols."
+  },
+  "linear algebra matrix factorization": {
+    "path": "linear algebra/linear algebra matrix factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Writing a matrix as a product of simpler, more structured matrices so that computations with it become easier or more revealing."
+  },
+  "linear algebra matrix commutator": {
+    "path": "linear algebra/linear algebra matrix commutator.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The commutator of two matrices is the difference between their products in the two possible orders, measuring exactly how much and in what direction the two matrices fail to commute."
+  },
+  "linear algebra matrix commutativity failure": {
+    "path": "linear algebra/linear algebra matrix commutativity failure.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Unlike ordinary numbers, matrix multiplication is not commutative: switching the order of two matrices generally produces a different result, or may not even be defined."
+  },
+  "linear algebra matrix column combination": {
+    "path": "linear algebra/linear algebra matrix column combination.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Multiplying a matrix $A$ by a vector $\\mathbf{x}$ produces a linear combination of the columns of $A$, with the entries of $\\mathbf{x}$ as the coefficients."
+  },
+  "linear algebra matrix addition": {
+    "path": "linear algebra/linear algebra matrix addition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "Matrix addition combines two same-size matrices by adding their corresponding entries one by one."
+  },
+  "linear algebra lower unitriangular matrix": {
+    "path": "linear algebra/linear algebra lower unitriangular matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A lower unitriangular matrix is a square matrix that has $1$s on the main diagonal, nonzero entries only below the diagonal, and zeros everywhere above."
+  },
+  "linear algebra lu decomposition": {
+    "path": "linear algebra/linear algebra lu decomposition.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "LU decomposition factors a square matrix into the product of a lower triangular matrix $L$ and an upper triangular matrix $U$, packaging all the steps of Gaussian elimination into two reusable pieces."
+  },
+  "linear algebra linear system": {
+    "path": "linear algebra/linear algebra linear system.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A collection of equations where every unknown appears only to the first power and no two unknowns are multiplied together, all of which must be satisfied simultaneously."
+  },
+  "linear algebra left and right inverse rectangular matrix": {
+    "path": "linear algebra/linear algebra left and right inverse rectangular matrix.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "A non-square matrix can have a left inverse or a right inverse, but never both at the same time, which is why only square matrices can have a true two-sided inverse."
+  },
+  "linear algebra ldv factorization": {
+    "path": "linear algebra/linear algebra ldv factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "The LDV factorization splits a regular matrix into a lower unitriangular factor, a diagonal factor carrying the pivots, and an upper unitriangular factor."
+  },
+  "linear algebra ldlt factorization": {
+    "path": "linear algebra/linear algebra ldlt factorization.md",
+    "domain": "linear algebra",
+    "parent-domain": "mathematics",
+    "summary": "When a matrix is symmetric and regular, its $LDV$ factorization automatically satisfies $V = L^T$, so you only need to store $L$ and $D$ — the matrix factors into $L D L^T$."
   }
 }

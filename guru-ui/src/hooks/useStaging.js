@@ -54,5 +54,28 @@ export function useStaging() {
     return result
   }
 
-  return { notes, loading, fetchNote, updateNote, rejectNote, approveNotes, refresh: fetchStaging }
+  async function exportNotes() {
+    const res = await fetch('/api/export', { method: 'POST' })
+    if (!res.ok) throw new Error('Export failed')
+    const result = await res.json()
+    // Export consumes every staged note, so clear the list.
+    setNotes([])
+    return result
+  }
+
+  // MCP export runs the agent against the live Vedam vault. It may consume only
+  // some notes (skipped conflicts stay), so re-fetch instead of clearing.
+  async function exportNotesMcp(policy) {
+    const res = await fetch('/api/export-mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ policy }),
+    })
+    const result = await res.json()
+    if (!res.ok) throw new Error(result.error || 'MCP export failed')
+    await fetchStaging()
+    return result
+  }
+
+  return { notes, loading, fetchNote, updateNote, rejectNote, approveNotes, exportNotes, exportNotesMcp, refresh: fetchStaging }
 }

@@ -2,6 +2,7 @@ import express from 'express'
 import { createServer } from 'http'
 import { WebSocketServer } from 'ws'
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { spawn, execSync } from 'child_process'
@@ -57,6 +58,8 @@ try {
 loadDotEnv(projectRoot)
 
 const vaultPath = path.resolve(projectRoot, config.vault_path)
+// Real Obsidian vault that `export` writes into — distinct from vault_path (a working/sample vault).
+const obsidianExportPath = config.obsidian_export_path ? path.resolve(projectRoot, config.obsidian_export_path) : null
 const stagingPath = config.staging_path ? path.resolve(projectRoot, config.staging_path) : null
 const pdfsPath = config.pdfs_path ? path.resolve(projectRoot, config.pdfs_path) : null
 const cacheDir = path.join(projectRoot, 'cache')
@@ -601,6 +604,111 @@ app.post('/api/approve', async (req, res) => {
   res.json(result)
 })
 
+// Export: push staged notes into the real Obsidian vault (obsidian_export_path),
+// overwriting any note with the same destination path and leaving all other vault
+// files untouched. This is a pure file mirror to a separate vault — it does not
+// merge, never deletes unrelated notes, and does not touch the working-vault
+// caches (concepts.json / embeddings are keyed to vault_path, not the export vault).
+app.post('/api/export', async (req, res) => {
+  if (!stagingPath) return res.status(400).json({ error: 'staging_path not configured' })
+  if (!obsidianExportPath) return res.status(400).json({ error: 'obsidian_export_path not configured' })
+
+  const result = { exported: 0, overwritten: 0, errors: [] }
+
+  for (const absStaging of findMdFiles(stagingPath)) {
+    const rel = path.relative(stagingPath, absStaging).replace(/\\/g, '/')
+    try {
+      const stagedContent = fs.readFileSync(absStaging, 'utf-8')
+      const { data: fm } = matter(stagedContent)
+      const title = fm.title
+      const domain = fm.domain || 'general'
+      const filename = path.basename(absStaging)
+
+      if (!title) {
+        result.errors.push({ path: rel, error: 'No title in frontmatter' })
+        continue
+      }
+
+      const destDir = path.join(obsidianExportPath, domain)
+      const destPath = path.join(destDir, filename)
+      fs.mkdirSync(destDir, { recursive: true })
+
+      // Overwrite matching, keep extras: copyFileSync replaces the destination if
+      // it exists and never touches any other file in the vault.
+      const existed = fs.existsSync(destPath)
+      fs.copyFileSync(absStaging, destPath)
+      if (existed) result.overwritten++
+      else result.exported++
+
+      fs.unlinkSync(absStaging)
+    } catch (err) {
+      result.errors.push({ path: rel, error: err.message })
+    }
+  }
+
+  res.json(result)
+})
+
+// MCP export: trigger the agent (headless `claude -p`) to run prompts/export.md,
+// pushing staged notes into the live Vedam vault via the obsidian-vault MCP with
+// conflict detection. Headless can't ask questions, so the conflict policy
+// (overwrite | skip) is fixed up front. Least-privilege: only the Obsidian MCP
+// and the file ops the prompt needs are allowed.
+let mcpExportRunning = false
+app.post('/api/export-mcp', (req, res) => {
+  if (mcpExportRunning) return res.status(409).json({ error: 'An MCP export is already running' })
+  const policy = req.body?.policy === 'skip' ? 'skip' : 'overwrite'
+
+  const policyText = policy === 'skip'
+    ? 'CONFLICT POLICY: SKIP. For every staged note that already exists in Vedam, leave the existing vault note untouched and leave the staged note in place. Only create brand-new notes.'
+    : 'CONFLICT POLICY: OVERWRITE. For every staged note that already exists in Vedam, replace the existing vault note entirely with the staged version. Also create brand-new notes.'
+
+  const prompt = [
+    'Follow the instructions in prompts/export.md to export staged notes into the real Obsidian (Vedam) vault via the obsidian-vault MCP server.',
+    'Run FULLY NON-INTERACTIVELY: do not ask any questions and do not wait for confirmation.',
+    policyText,
+    'Do not modify any cache files. When finished, print the Step 8 summary and nothing else.',
+  ].join(' ')
+
+  const args = [
+    '-p', prompt,
+    '--model', 'sonnet',
+    '--allowed-tools', 'Read', 'Glob', 'Grep', 'Bash(mv:*)', 'Bash(mkdir:*)', 'mcp__obsidian-vault',
+  ]
+
+  // Authenticate with the Pro/Max subscription, not API credits: strip any API
+  // key/token so the CLI falls back to the logged-in subscription, and ensure HOME
+  // is set so it finds ~/.claude credentials. Mirrors scripts/batch_ingest.py
+  // (call_claude_code_cli) — without this the spawned CLI bills API credits and
+  // fails with "Credit balance is too low".
+  const cliEnv = { ...process.env }
+  delete cliEnv.ANTHROPIC_API_KEY
+  delete cliEnv.ANTHROPIC_AUTH_TOKEN
+  cliEnv.HOME = cliEnv.HOME || os.homedir()
+  cliEnv.MAX_THINKING_TOKENS = '0'
+
+  mcpExportRunning = true
+  const proc = spawn('claude', args, {
+    cwd: projectRoot,
+    env: cliEnv,
+    stdio: ['ignore', 'pipe', 'pipe'], // DEVNULL stdin — avoids the 3s stdin wait
+  })
+  const out = []
+  const err = []
+  proc.stdout.on('data', d => out.push(d.toString()))
+  proc.stderr.on('data', d => err.push(d.toString()))
+  proc.on('error', e => {
+    mcpExportRunning = false
+    res.status(500).json({ error: `Failed to launch claude: ${e.message}` })
+  })
+  proc.on('close', code => {
+    mcpExportRunning = false
+    broadcastRefresh()
+    if (res.headersSent) return
+    res.json({ ok: code === 0, code, policy, output: out.join('').trim(), stderr: err.join('').trim() })
+  })
+})
+
 // ---------------------------------------------------------------------------
 // WebSocket + watcher
 // ---------------------------------------------------------------------------
@@ -647,4 +755,5 @@ server.listen(PORT, () => {
   console.log(`[guru] Project root: ${projectRoot}`)
   console.log(`[guru] Vault: ${vaultPath}`)
   if (stagingPath) console.log(`[guru] Staging: ${stagingPath}`)
+  if (obsidianExportPath) console.log(`[guru] Export target: ${obsidianExportPath}`)
 })

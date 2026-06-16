@@ -2,10 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Fuse from 'fuse.js'
 import { useVault } from './hooks/useVault'
-import { useNote } from './hooks/useNote'
 import Graph from './components/Graph'
 import FilterBar from './components/FilterBar'
-import NotePanel from './components/NotePanel'
 import { AppHeader } from './components/AppShell'
 
 const DEFAULT_FILTERS = {
@@ -28,7 +26,6 @@ export default function App() {
   })
 
   const selectedTitle = routeTitle ? decodeURIComponent(routeTitle) : null
-  const { data: noteData, loading: noteLoading, error: noteError } = useNote(selectedTitle)
 
   const nodes = vaultData?.nodes ?? []
   const edges = vaultData?.edges ?? []
@@ -50,10 +47,6 @@ export default function App() {
     } else {
       navigate(`/note/${encodeURIComponent(id)}`)
     }
-  }
-
-  function handleClosePanel() {
-    navigate('/')
   }
 
   useEffect(() => {
@@ -114,15 +107,6 @@ export default function App() {
           selectedId={selectedTitle}
           onSelectNode={handleSelectNode}
           searchMatches={searchMatches}
-        />
-
-        <NotePanel
-          note={noteData}
-          edges={edges}
-          nodes={nodes}
-          onClose={handleClosePanel}
-          loading={noteLoading}
-          error={noteError}
         />
       </div>
     </div>
