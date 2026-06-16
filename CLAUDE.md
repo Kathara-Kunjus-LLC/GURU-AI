@@ -23,12 +23,13 @@ Always read `config.json` at the start of every session for canonical paths. Do 
 
 ## Prompts
 
-Five prompts live in `prompts/`:
+Six prompts live in `prompts/`:
 
 - `prompts/overview.md` — book map generation before chapter processing begins
 - `prompts/ingest.md` — note generation from a PDF chapter
 - `prompts/review.md` — quality validation of staged notes before approval
-- `prompts/approve.md` — moving staged notes into the Vedam vault
+- `prompts/approve.md` — moving staged notes into the working vault (`vault_path`) and updating the caches
+- `prompts/export.md` — MCP-based, conflict-aware push of staged notes into the real Obsidian vault (Vedam); interactive merge/overwrite/skip, does not touch the caches
 - `prompts/verify.md` — cache re-sync and wikilink integrity check (run after manual Obsidian edits)
 
 ---

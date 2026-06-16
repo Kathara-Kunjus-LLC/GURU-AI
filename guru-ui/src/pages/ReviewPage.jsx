@@ -53,7 +53,7 @@ function DomainConfirmModal({ proposals, onConfirm, onCancel }) {
 }
 
 export default function ReviewPage() {
-  const { notes, loading, fetchNote, updateNote, rejectNote, approveNotes, refresh } = useStaging()
+  const { notes, loading, fetchNote, updateNote, rejectNote, approveNotes, exportNotes, exportNotesMcp, refresh } = useStaging()
 
   const [selected, setSelected] = useState(null)      // notePath of selected note
   const [noteContent, setNoteContent] = useState(null) // { content, frontmatter }
@@ -65,6 +65,11 @@ export default function ReviewPage() {
   const [toast, setToast] = useState(null)
   const [domainModal, setDomainModal] = useState(null) // { proposals, decisions }
   const [approving, setApproving] = useState(false)
+  const [confirmExport, setConfirmExport] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [mcpPolicy, setMcpPolicy] = useState('overwrite')
+  const [mcpExporting, setMcpExporting] = useState(false)
+  const [mcpResult, setMcpResult] = useState(null) // agent summary text
 
   // Group notes by chapter
   const grouped = notes.reduce((acc, n) => {
@@ -171,6 +176,41 @@ export default function ReviewPage() {
     await runApprove(buildDecisions([notePath], 'approve'))
   }
 
+  async function handleExport() {
+    setExporting(true)
+    try {
+      const result = await exportNotes()
+      const total = result.exported + result.overwritten
+      showToast(`Exported ${total} note${total !== 1 ? 's' : ''} to vault (${result.overwritten} overwritten)`)
+      setSelected(null)
+      setNoteContent(null)
+      setRendered('')
+      setCheckedPaths(new Set())
+    } catch {
+      showToast('Export failed', 'error')
+    } finally {
+      setExporting(false)
+      setConfirmExport(false)
+    }
+  }
+
+  async function handleMcpExport() {
+    setMcpExporting(true)
+    try {
+      const result = await exportNotesMcp(mcpPolicy)
+      setMcpResult(result.output || '(no output returned)')
+      setSelected(null)
+      setNoteContent(null)
+      setRendered('')
+      setCheckedPaths(new Set())
+      showToast(result.ok ? 'MCP export finished' : 'MCP export finished with errors', result.ok ? 'success' : 'error')
+    } catch (e) {
+      showToast(e.message || 'MCP export failed', 'error')
+    } finally {
+      setMcpExporting(false)
+    }
+  }
+
   function toggleCheck(notePath) {
     setCheckedPaths(prev => {
       const n = new Set(prev)
@@ -233,6 +273,54 @@ export default function ReviewPage() {
         />
       )}
 
+      {confirmExport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <h2 className="text-slate-100 font-semibold mb-1">Export to Obsidian vault</h2>
+            <p className="text-slate-500 text-sm mb-5">
+              Write all {notes.length} staged note{notes.length !== 1 ? 's' : ''} into the vault. Notes with the same
+              name are <span className="text-slate-300">overwritten</span>; all other vault notes are left untouched.
+              Nothing is deleted. Staging is cleared afterward.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="flex-1 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors disabled:opacity-50"
+              >
+                {exporting ? 'Exporting…' : 'Export & overwrite'}
+              </button>
+              <button
+                onClick={() => setConfirmExport(false)}
+                disabled={exporting}
+                className="px-4 py-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-200 text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mcpResult !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-2xl w-full mx-4 shadow-2xl">
+            <h2 className="text-slate-100 font-semibold mb-3">MCP export summary</h2>
+            <pre className="bg-slate-950 border border-slate-800 rounded-lg p-4 text-slate-300 text-xs whitespace-pre-wrap max-h-[60vh] overflow-y-auto">
+              {mcpResult}
+            </pre>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setMcpResult(null)}
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex h-full">
         {/* Left panel — note list */}
         <div className="w-72 shrink-0 border-r border-slate-800 flex flex-col overflow-hidden">
@@ -246,15 +334,25 @@ export default function ReviewPage() {
               />
               <span className="text-slate-400 text-xs">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
             </div>
-            {checkedPaths.size > 0 && (
+            <div className="flex items-center gap-3">
+              {checkedPaths.size > 0 && (
+                <button
+                  onClick={handleApproveSelected}
+                  disabled={approving}
+                  className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                >
+                  Approve {checkedPaths.size}
+                </button>
+              )}
               <button
-                onClick={handleApproveSelected}
-                disabled={approving}
-                className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors"
+                onClick={() => setConfirmExport(true)}
+                disabled={exporting || notes.length === 0}
+                className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors disabled:opacity-40"
+                title="Write all staged notes into the Obsidian vault, overwriting matching notes"
               >
-                Approve {checkedPaths.size}
+                Export to vault
               </button>
-            )}
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -297,6 +395,37 @@ export default function ReviewPage() {
                 ))}
               </div>
             ))}
+          </div>
+
+          {/* MCP export footer — conflict-aware push to the real Obsidian vault */}
+          <div className="px-4 py-3 border-t border-slate-800 space-y-2">
+            <div className="text-[10px] uppercase tracking-wider text-slate-600">
+              Export to Obsidian (MCP)
+            </div>
+            <div className="flex items-center gap-2">
+              <select
+                value={mcpPolicy}
+                onChange={e => setMcpPolicy(e.target.value)}
+                disabled={mcpExporting}
+                className="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-slate-300 text-xs focus:outline-none focus:border-indigo-500 disabled:opacity-50"
+              >
+                <option value="overwrite">Overwrite conflicts</option>
+                <option value="skip">Skip conflicts</option>
+              </select>
+              <button
+                onClick={handleMcpExport}
+                disabled={mcpExporting || notes.length === 0}
+                className="text-xs px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white transition-colors disabled:opacity-40 shrink-0"
+                title="Run the conflict-aware agent export into the live Vedam vault"
+              >
+                {mcpExporting ? 'Running…' : 'Run'}
+              </button>
+            </div>
+            {mcpExporting && (
+              <p className="text-[10px] text-slate-600 leading-snug">
+                Agent is checking each note against the live vault — this can take a minute.
+              </p>
+            )}
           </div>
         </div>
 
